@@ -1,0 +1,2096 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#2F4858">
+<title>Manos a la Obra — Servicios de confianza</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Zilla+Slab:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap');
+  :root{
+    --ink:#20303A; --paper:#F5F2EA; --steel:#2F4858; --steel-dark:#1D2C36; --steel-shadow:#101a20;
+    --gold:#E2A33D; --gold-deep:#C4841F; --gold-shadow:#8f5f12;
+    --forest:#3B6E52; --forest-deep:#2C5540; --forest-shadow:#1c3d2c;
+    --brick:#B4452A; --brick-shadow:#7a2e1a; --line:#DDD6C4; --white:#FFFFFF; --sky:#4A7C8C;
+    --purple:#6B4E9E; --purple-deep:#4F3A78;
+    --edit-bg:#eaf2f4; --edit-border:#4A7C8C;
+    --warn-bg:#f6ecd8; --warn-border:#e2c98a; --warn-text:#8a6416;
+    --meta-color:#5b6b74;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Work Sans',sans-serif;color:var(--ink);background-color:var(--paper);background-image:radial-gradient(rgba(32,48,58,.05) 1px,transparent 1px);background-size:22px 22px;line-height:1.55;}
+  h1,h2,h3{font-family:'Zilla Slab',serif;margin:0 0 .4em 0;font-weight:700;color:var(--steel);}
+  a{color:inherit;}
+  header.top{background:linear-gradient(135deg,#0f1a20,#2F4858 60%,#1D2C36);color:var(--paper);padding:18px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  header.top .brand{display:flex;align-items:center;gap:16px;}
+  header.top .brand .logo3d{width:62px;height:62px;border-radius:18px;background:radial-gradient(circle at 30% 25%,#FFF3C4 0%,#F5C842 20%,#E2A33D 55%,#C4841F 100%);box-shadow:0 7px 0 #8f5f12,0 9px 0 #6e4a0e,0 14px 30px rgba(0,0,0,.45),inset 0 -3px 6px rgba(0,0,0,.25),inset 0 3px 6px rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;position:relative;transition:transform .18s;border:1px solid rgba(255,255,255,.35);}
+  header.top .brand .logo3d::before{content:'';position:absolute;top:4px;left:8px;right:8px;height:40%;background:linear-gradient(180deg,rgba(255,255,255,.45),transparent);border-radius:12px 12px 50% 50%;pointer-events:none;}
+  header.top .brand .logo3d svg{position:relative;z-index:1;width:38px;height:38px;}
+  header.top h1{color:var(--paper);font-size:2rem;margin:0;font-family:'Playfair Display',serif;font-weight:800;letter-spacing:.5px;text-shadow:0 2px 8px rgba(0,0,0,.35);}
+  header.top h1 .amp{color:#F5C842;font-style:italic;}
+  header.top span.tag{font-size:.82rem;opacity:.85;display:block;margin-top:2px;letter-spacing:.3px;}
+  .header-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .notif-bell{position:relative;background:rgba(255,255,255,.14);border:none;color:var(--paper);width:42px;height:42px;border-radius:50%;cursor:pointer;font-size:1.15rem;transition:background .15s;}
+  .notif-bell:hover{background:rgba(255,255,255,.24);}
+  .notif-badge{position:absolute;top:-2px;right:-2px;background:var(--brick);color:white;font-size:.7rem;font-weight:700;min-width:20px;height:20px;padding:0 5px;border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.35);border:2px solid #1D2C36;}
+  nav.tabs{display:flex;gap:8px;flex-wrap:wrap;background:var(--white);border-bottom:1px solid var(--line);padding:12px 18px;position:sticky;top:0;z-index:5;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+  nav.tabs button{background:none;border:none;padding:11px 18px;font-family:'Work Sans',sans-serif;font-size:1.02rem;font-weight:600;color:var(--steel);cursor:pointer;border-radius:8px;transition:all .15s;}
+  nav.tabs button:hover{background:#f0ece0;transform:translateY(-1px);}
+  nav.tabs button.active{background:linear-gradient(180deg,#F0B454,var(--gold));color:#20303A;box-shadow:0 3px 0 var(--gold-shadow);transform:translateY(-1px);}
+  main{max-width:820px;margin:0 auto;padding:20px 16px 90px;}
+  .card{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 6px rgba(32,48,58,.06);}
+  label{display:block;font-size:.9rem;font-weight:700;margin:12px 0 5px;color:var(--ink);letter-spacing:.2px;}
+  input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;font-family:'Work Sans',sans-serif;font-size:.95rem;background:var(--paper);color:var(--ink);}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--sky);outline-offset:1px;}
+  textarea{resize:vertical;min-height:60px;}
+  .btn{display:inline-block;color:var(--white);border:none;padding:12px 22px;border-radius:10px;font-weight:700;font-size:.95rem;cursor:pointer;margin-top:12px;background:linear-gradient(180deg,var(--forest) 0%,var(--forest-deep) 100%);box-shadow:0 4px 0 var(--forest-shadow),0 6px 14px rgba(32,48,58,.22);transition:transform .07s,box-shadow .07s,filter .15s;}
+  .btn:hover{filter:brightness(1.06);}
+  .btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--forest-shadow);}
+  .btn.secondary{background:linear-gradient(180deg,var(--steel) 0%,var(--steel-dark) 100%);box-shadow:0 4px 0 var(--steel-shadow);}
+  .btn.warn{background:linear-gradient(180deg,var(--brick) 0%,#8f3620 100%);box-shadow:0 4px 0 var(--brick-shadow);}
+  .btn.gold{background:linear-gradient(180deg,#F0B454 0%,var(--gold) 100%);color:#20303A;box-shadow:0 4px 0 var(--gold-shadow);}
+  .btn.ghost{background:var(--white);color:var(--steel);border:1px solid var(--line);box-shadow:0 2px 0 var(--line);}
+  .btn.purple{background:linear-gradient(180deg,var(--purple) 0%,var(--purple-deep) 100%);box-shadow:0 4px 0 #352555;}
+  .btn.big{padding:16px 28px;font-size:1.05rem;letter-spacing:.5px;}
+  .btn:disabled{opacity:.4;cursor:not-allowed;filter:none !important;transform:none !important;}
+  .btn-sm{padding:7px 14px;font-size:.82rem;margin-top:6px;}
+  .badge{display:inline-block;font-size:.72rem;font-weight:700;padding:4px 11px;border-radius:20px;margin-left:6px;}
+  .badge.ok{background:#e3efe8;color:var(--forest-deep);}
+  .badge.pending{background:#f6ecd8;color:#8a6416;}
+  .badge.gray{background:var(--brick);color:#FFFFFF;font-weight:700;border:1px solid #7a2e1a;}
+  .badge.red{background:#fbeceb;color:var(--brick);}
+  .badge.soporte{background:#ece4f7;color:var(--purple-deep);}
+  .badge.active{background:#d4edda;color:#155724;border:1px solid var(--forest);}
+  .badge.inactive{background:var(--brick);color:#FFFFFF;border:1px solid #7a2e1a;font-weight:700;}
+  .avatar{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Zilla Slab',serif;font-weight:700;color:#fff;font-size:1rem;flex-shrink:0;box-shadow:0 2px 4px rgba(0,0,0,.15);object-fit:cover;}
+  .avatar.sm{width:32px;height:32px;font-size:.8rem;}
+  .avatar-lg{width:130px;height:160px;border-radius:10px;object-fit:cover;border:3px solid var(--gold);box-shadow:0 6px 16px rgba(0,0,0,.22);background:#fff;}
+  .avatar-lg-placeholder{width:130px;height:160px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:800;font-size:3rem;color:#fff;border:3px solid var(--gold);box-shadow:0 6px 16px rgba(0,0,0,.22);}
+  .avatar-soporte{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--purple),var(--purple-deep));color:#fff;font-weight:700;font-size:1.2rem;flex-shrink:0;box-shadow:0 2px 6px rgba(107,78,158,.4);}
+  .avatar-soporte.sm{width:32px;height:32px;font-size:.9rem;}
+  .dot-online{display:inline-block;width:9px;height:9px;border-radius:50%;background:#43c463;box-shadow:0 0 0 3px rgba(67,196,99,.22);margin-right:5px;vertical-align:middle;}
+  .dot-offline{display:inline-block;width:9px;height:9px;border-radius:50%;background:#b8c0c5;margin-right:5px;vertical-align:middle;}
+  .badge-tipo{display:inline-block;font-family:'Zilla Slab',serif;font-weight:700;font-size:.85rem;padding:5px 14px;border-radius:8px;letter-spacing:.6px;text-transform:uppercase;}
+  .badge-tipo.cliente{background:#e7eef1;color:#2f6a7c;border:1px solid #bcd4da;}
+  .badge-tipo.profesional{background:#fbeed7;color:var(--gold-shadow);border:1px solid #f0d29c;}
+  .badge-tipo.soporte{background:#ece4f7;color:var(--purple-deep);border:1px solid #c7b8e3;}
+  .check-icon{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:.75rem;font-weight:700;margin-left:6px;}
+  .check-icon.green{background:#e3efe8;color:var(--forest-deep);border:1.5px solid var(--forest);}
+  .check-icon.red{background:#fbeceb;color:var(--brick);border:1.5px solid var(--brick);}
+  .estado-servicio{display:inline-block;padding:4px 12px;border-radius:20px;font-size:.78rem;font-weight:700;}
+  .estado-servicio.activo{background:#fff3cd;color:#856404;}
+  .estado-servicio.completado{background:#d4edda;color:#155724;}
+  .estado-servicio.cancelado{background:#f8d7da;color:#721c24;}
+  .msg{padding:9px 12px;border-radius:10px;margin-bottom:7px;max-width:80%;font-size:.9rem;white-space:pre-wrap;}
+  .msg.mine{background:var(--forest);color:white;margin-left:auto;text-align:right;border-bottom-right-radius:2px;}
+  .msg.mine.soporte{background:var(--purple);}
+  .msg.theirs{background:var(--paper);border:1px solid var(--line);border-bottom-left-radius:2px;color:var(--ink);}
+  .msg.theirs.soporte{background:#ece4f7;border-color:#c7b8e3;}
+  .msg.sistema{background:var(--warn-bg);border:1px dashed var(--gold);text-align:center;font-style:italic;font-size:.82rem;color:var(--warn-text);margin:8px auto;max-width:90%;}
+  .notice{background:var(--warn-bg);border:1px solid var(--warn-border);padding:12px 14px;border-radius:8px;font-size:.85rem;margin-bottom:14px;color:var(--warn-text);}
+  .tip{background:var(--edit-bg);border:1px solid var(--edit-border);padding:12px 14px;border-radius:8px;font-size:.85rem;margin-bottom:14px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start;color:var(--ink);}
+  .tip button{background:none;border:none;color:var(--sky);font-weight:700;cursor:pointer;font-size:.9rem;flex-shrink:0;}
+  .empty{color:var(--meta-color);font-style:italic;padding:14px 0;}
+  footer{text-align:center;font-size:.8rem;color:var(--meta-color);padding:20px 20px 70px;}
+  .pill{display:inline-block;background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:6px 12px;font-size:.8rem;margin:2px 4px 2px 0;cursor:pointer;transition:background .12s;color:var(--ink);}
+  .pill:hover{background:#efe9d8;}
+  .pill.on{background:var(--gold);border-color:var(--gold);font-weight:700;color:#20303A;}
+  .pill.soporte{background:#ece4f7;border-color:#c7b8e3;color:var(--purple-deep);font-weight:700;}
+  .hero{background:linear-gradient(135deg,var(--steel-dark),var(--sky));color:var(--paper);border-radius:14px;padding:28px 24px;margin-bottom:18px;}
+  .hero h2{color:var(--paper);font-size:1.55rem;font-family:'Playfair Display',serif;}
+  .hero p{margin:0 0 14px;opacity:.92;max-width:46ch;}
+  .stats{display:flex;gap:20px;flex-wrap:wrap;margin-top:14px;}
+  .stats .num{font-family:'Zilla Slab',serif;font-size:1.5rem;font-weight:700;color:var(--gold);}
+  .stats .lbl{font-size:.75rem;opacity:.85;}
+  .steps3{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;}
+  .steps3 > div{flex:1;min-width:150px;background:rgba(255,255,255,.08);border-radius:8px;padding:12px;}
+  .steps3 .n{font-family:'Zilla Slab',serif;font-weight:700;color:var(--gold);font-size:1.1rem;}
+  .starpicker{font-size:1.9rem;cursor:pointer;letter-spacing:3px;}
+  .starpicker span{color:#d8d2c2;}
+  .starpicker span.sel{color:var(--gold-deep);}
+  .starpicker-big{font-size:3.5rem;cursor:pointer;letter-spacing:6px;text-align:center;margin:20px 0;}
+  .starpicker-big span{color:#d8d2c2;transition:color .15s;}
+  .starpicker-big span.sel{color:var(--gold-deep);text-shadow:0 0 12px rgba(226,163,61,.6);}
+  .stars-display{color:var(--gold-deep);font-weight:700;font-size:1rem;letter-spacing:1px;}
+  .stars-display .count{color:var(--meta-color);font-weight:500;font-size:.85rem;margin-left:4px;}
+  .portafolio-fotos{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+  .portafolio-fotos img{width:76px;height:76px;object-fit:cover;border-radius:8px;border:1px solid var(--line);}
+  .checklist{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-top:10px;}
+  .checklist label{font-weight:400;font-size:.85rem;}
+  .switch{position:relative;display:inline-block;width:44px;height:24px;}
+  .switch input{opacity:0;width:0;height:0;}
+  .slider{position:absolute;cursor:pointer;inset:0;background:#cfd6da;border-radius:24px;transition:.2s;}
+  .slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.2s;}
+  .switch input:checked + .slider{background:var(--forest);}
+  .switch input:checked + .slider:before{transform:translateX(20px);}
+  .quick-tpl{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .quick-tpl button{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:6px 12px;font-size:.78rem;cursor:pointer;color:var(--steel);}
+  .quick-tpl button:hover{background:#efe9d8;}
+  .quick-tpl button.soporte{background:#ece4f7;border-color:#c7b8e3;color:var(--purple-deep);}
+  .skeleton{background:linear-gradient(90deg,#eee 25%,#e0dccc 37%,#eee 63%);background-size:400% 100%;animation:sk 1.4s ease infinite;border-radius:8px;height:14px;margin:8px 0;}
+  @keyframes sk{0%{background-position:100% 50%;}100%{background-position:0 50%;}}
+  .onboard-overlay{position:fixed;inset:0;background:rgba(20,26,31,.94);display:flex;align-items:center;justify-content:center;z-index:120;padding:20px;}
+  .onboard-card{background:var(--paper);max-width:420px;width:100%;padding:28px;border-radius:16px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.4);color:var(--ink);}
+  .onboard-card .ob-icon{font-size:3.5rem;margin-bottom:6px;}
+  .onboard-dots{display:flex;gap:6px;justify-content:center;margin:14px 0;}
+  .onboard-dots span{width:9px;height:9px;border-radius:50%;background:#ccc;}
+  .onboard-dots span.on{background:var(--gold);}
+  #app.fadein{animation:fadeIn .28s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  #toastWrap{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:80;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;}
+  .toast{background:var(--steel-dark);color:var(--paper);padding:11px 20px;border-radius:30px;font-size:.85rem;font-weight:600;box-shadow:0 8px 20px rgba(0,0,0,.28);animation:toastIn .25s,toastOut .25s 3s forwards;max-width:90vw;text-align:center;}
+  .toast.success{background:var(--forest-deep);}
+  .toast.error{background:var(--brick);}
+  .toast.warn{background:var(--gold-deep);color:#1D2C36;}
+  .toast.soporte{background:var(--purple-deep);}
+  @keyframes toastIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes toastOut{to{opacity:0;transform:translateY(-8px);}}
+  .theme-toggle{background:rgba(255,255,255,.14);border:none;color:var(--paper);width:42px;height:42px;border-radius:50%;cursor:pointer;font-size:1.1rem;flex-shrink:0;transition:background .15s;}
+  .theme-toggle:hover{background:rgba(255,255,255,.24);}
+  .dbstatus{font-size:.72rem;padding:3px 9px;border-radius:20px;font-weight:700;}
+  .dbstatus.on{background:#e3efe8;color:var(--forest-deep);}
+  .dbstatus.off{background:#f6ecd8;color:#8a6416;}
+  .banner-warn{background:var(--warn-bg);border:2px solid var(--gold);padding:14px 16px;border-radius:10px;margin-bottom:14px;font-size:.88rem;font-weight:600;color:var(--warn-text);display:flex;align-items:center;gap:12px;}
+  .banner-warn .ico{font-size:1.5rem;flex-shrink:0;}
+  .banner-warn a{color:inherit;text-decoration:underline;}
+  .verif-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid var(--line);}
+  .verif-row:first-child{border-top:none;}
+  .verif-row .info{flex:1;}
+  .verif-row .info b{display:block;font-family:'Zilla Slab',serif;font-size:1rem;color:var(--ink);}
+  .verif-row .info span{font-size:.82rem;color:var(--meta-color);}
+  .photo-note{background:var(--edit-bg);border-left:4px solid var(--sky);padding:10px 14px;border-radius:6px;font-size:.82rem;color:var(--ink);margin-top:8px;line-height:1.5;}
+  .reset-bar{text-align:center;margin:14px 0;}
+  .admin-decision{display:inline-flex;gap:6px;align-items:center;margin-left:6px;}
+  .decision-btn{border:none;width:32px;height:32px;border-radius:8px;cursor:pointer;font-weight:700;font-size:1rem;}
+  .decision-btn.ok{background:#e3efe8;color:var(--forest-deep);border:1px solid var(--forest);}
+  .decision-btn.no{background:#fbeceb;color:var(--brick);border:1px solid var(--brick);}
+  .decision-btn.ok.active{background:var(--forest);color:#fff;}
+  .decision-btn.no.active{background:var(--brick);color:#fff;}
+  .panel-edit{background:var(--edit-bg);border:2px solid var(--edit-border);border-radius:12px;padding:20px;margin-bottom:16px;}
+  .panel-edit h3{color:var(--steel);}
+  .fab-soporte{position:fixed;bottom:90px;right:22px;z-index:70;background:linear-gradient(135deg,var(--purple),var(--purple-deep));color:#fff;border:none;width:62px;height:62px;border-radius:50%;cursor:grab;font-size:1.6rem;box-shadow:0 6px 0 #352555,0 10px 24px rgba(0,0,0,.35);transition:transform .15s,box-shadow .15s;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none;}
+  .fab-soporte:hover{transform:translateY(-2px);box-shadow:0 8px 0 #352555,0 14px 28px rgba(0,0,0,.4);}
+  .fab-soporte:active{cursor:grabbing;}
+  .fab-soporte.arrastrando{transform:scale(1.08);box-shadow:0 10px 0 #352555,0 16px 32px rgba(0,0,0,.5);transition:none;}
+  .fab-soporte .badge-fab{position:absolute;top:-3px;right:-3px;background:var(--brick);color:#fff;font-size:.68rem;font-weight:700;min-width:22px;height:22px;padding:0 6px;border-radius:11px;display:flex;align-items:center;justify-content:center;border:2px solid var(--paper);}
+  .msg-input-wrap{display:flex;gap:8px;margin-top:8px;align-items:flex-start;}
+  .msg-input-wrap input{flex:1;}
+  .admin-edit-panel{background:#f6ecd8;border:2px solid var(--gold);border-radius:12px;padding:16px;margin-top:12px;}
+  .admin-edit-panel h4{margin:0 0 8px;color:var(--gold-shadow);font-family:'Zilla Slab',serif;}
+  .card-danger{background:#fbeceb;border:2px solid var(--brick);}
+  body[data-tema="oscuro"] .card-danger{background:#3a1a1a !important;border-color:#EF9A9A !important;}
+  body[data-tema="oscuro"] .card-danger h3{color:#EF9A9A !important;}
+  body[data-tema="oscuro"] .card-danger p,body[data-tema="oscuro"] .card-danger span,body[data-tema="oscuro"] .card-danger li,body[data-tema="oscuro"] .card-danger b{color:#FFCDD2 !important;}
+  body[data-tema="oscuro"] .card-danger .meta{color:#FFB4AB !important;}
+  .card-success{background:#e3efe8;border:2px solid var(--forest);}
+  body[data-tema="oscuro"] .card-success{background:#193a2a !important;border-color:#7FD9AB !important;}
+  body[data-tema="oscuro"] .card-success p,body[data-tema="oscuro"] .card-success b{color:#7FD9AB !important;}
+  .card-info{background:#eaf2f4;border:2px solid var(--sky);}
+  body[data-tema="oscuro"] .card-info{background:#152a33 !important;border-color:#8FD0E3 !important;}
+  body[data-tema="oscuro"] .card-info p,body[data-tema="oscuro"] .card-info b{color:#8FD0E3 !important;}
+  .card-warn{background:#f6ecd8;border:2px solid var(--gold);}
+  body[data-tema="oscuro"] .card-warn{background:#3a2f14 !important;border-color:#F5C842 !important;}
+  body[data-tema="oscuro"] .card-warn p,body[data-tema="oscuro"] .card-warn b,body[data-tema="oscuro"] .card-warn h3{color:#F5C842 !important;}
+  .card-calificar{background:linear-gradient(135deg,#fff9e6,#fbeed7);border:3px solid var(--gold);border-radius:16px;padding:24px;}
+  body[data-tema="oscuro"] .card-calificar{background:linear-gradient(135deg,#1a1408,#2a2010) !important;border-color:#F5C842 !important;}
+  body[data-tema="oscuro"] .card-calificar p,body[data-tema="oscuro"] .card-calificar h2,body[data-tema="oscuro"] .card-calificar h3{color:#F5C842 !important;}
+  body[data-tema="oscuro"]{
+    --paper:#0f1418; --ink:#FFFFFF; --line:#2c3841;
+    --edit-bg:#1a2630; --edit-border:#3b8ca0;
+    --warn-bg:#3a2f14; --warn-border:#7a6215; --warn-text:#FFD966;
+    --meta-color:#B0BEC5;
+    background-color:#0b0f12;
+    background-image:radial-gradient(rgba(255,255,255,.04) 1px,transparent 1px);
+  }
+  body[data-tema="oscuro"] h1,body[data-tema="oscuro"] h2,body[data-tema="oscuro"] h3{color:#F5C842;}
+  body[data-tema="oscuro"] p,body[data-tema="oscuro"] li,body[data-tema="oscuro"] span,body[data-tema="oscuro"] label{color:#FFFFFF;}
+  body[data-tema="oscuro"] label{color:#F5F5F5 !important;font-weight:600;}
+  body[data-tema="oscuro"] .meta{color:var(--meta-color);}
+  body[data-tema="oscuro"] .prof-name{color:#FFFFFF;}
+  body[data-tema="oscuro"] header.top{background:linear-gradient(135deg,#050809,#0f1a20 60%,#060a0d);}
+  body[data-tema="oscuro"] .card{background:#161d23;border-color:#2c3841;box-shadow:0 2px 6px rgba(0,0,0,.5);color:#FFFFFF;}
+  body[data-tema="oscuro"] .panel-edit{background:#1a2630;border-color:#3b8ca0;}
+  body[data-tema="oscuro"] .panel-edit h3{color:#F5C842;}
+  body[data-tema="oscuro"] .admin-edit-panel{background:#3a2f14;border-color:#F5C842;}
+  body[data-tema="oscuro"] .admin-edit-panel h4{color:#F5C842;}
+  body[data-tema="oscuro"] input,body[data-tema="oscuro"] select,body[data-tema="oscuro"] textarea{background:#0b0f12;color:#FFFFFF;border-color:#3a4750;}
+  body[data-tema="oscuro"] .msg.theirs{background:#0b0f12;border-color:#2c3841;color:#FFFFFF;}
+  body[data-tema="oscuro"] .msg.theirs.soporte{background:#2a1f3d;border-color:#4F3A78;color:#E8DDFF;}
+  body[data-tema="oscuro"] .msg.sistema{background:#3a2f14;border-color:#F5C842;color:#F5C842;}
+  body[data-tema="oscuro"] .empty{color:var(--meta-color);}
+  body[data-tema="oscuro"] nav.tabs{background:#111a20;border-color:#2c3841;}
+  body[data-tema="oscuro"] nav.tabs button{color:#CFD8DC;}
+  body[data-tema="oscuro"] nav.tabs button:hover{background:#1c262e;}
+  body[data-tema="oscuro"] footer{color:var(--meta-color);}
+  body[data-tema="oscuro"] .btn.ghost{background:#161d23;color:#FFFFFF;border-color:#2c3841;}
+  body[data-tema="oscuro"] .notice{background:var(--warn-bg);border-color:var(--warn-border);color:var(--warn-text);}
+  body[data-tema="oscuro"] .banner-warn{background:#3a2f14;border-color:#F5C842;color:#F5C842;}
+  body[data-tema="oscuro"] .banner-warn *{color:#F5C842 !important;}
+  body[data-tema="oscuro"] .tip{background:var(--edit-bg);border-color:#3b8ca0;color:#FFFFFF;}
+  body[data-tema="oscuro"] .tip *{color:#FFFFFF;}
+  body[data-tema="oscuro"] .badge.ok{background:#193a2a;color:#7FD9AB;}
+  body[data-tema="oscuro"] .badge.pending{background:#3a2f14;color:#F5C842;}
+  body[data-tema="oscuro"] .badge.gray{background:#8f3620;color:#FFFFFF;border-color:#FF6B4A;font-weight:700;}
+  body[data-tema="oscuro"] .badge.active{background:#193a2a;color:#7FD9AB;border:1px solid #7FD9AB;}
+  body[data-tema="oscuro"] .badge.inactive{background:#8f3620;color:#FFFFFF;border:1px solid #FF6B4A;}
+  body[data-tema="oscuro"] .badge.soporte{background:#2a1f3d;color:#C7B8E3;}
+  body[data-tema="oscuro"] .badge-tipo.cliente{background:#152a33;color:#8FD0E3;border-color:#234a58;}
+  body[data-tema="oscuro"] .badge-tipo.profesional{background:#332a12;color:#F5C842;border-color:#5c4a1e;}
+  body[data-tema="oscuro"] .badge-tipo.soporte{background:#2a1f3d;color:#C7B8E3;border-color:#4F3A78;}
+  body[data-tema="oscuro"] .pill{background:#0b0f12;border-color:#2c3841;color:#FFFFFF;}
+  body[data-tema="oscuro"] .pill:hover{background:#1c262e;}
+  body[data-tema="oscuro"] .pill.on{color:#1D2C36 !important;}
+  body[data-tema="oscuro"] .pill.soporte{background:#2a1f3d;border-color:#4F3A78;color:#C7B8E3;}
+  body[data-tema="oscuro"] .quick-tpl button{background:#0b0f12;border-color:#2c3841;color:#CFD8DC;}
+  body[data-tema="oscuro"] .quick-tpl button:hover{background:#1c262e;}
+  body[data-tema="oscuro"] .quick-tpl button.soporte{background:#2a1f3d;border-color:#4F3A78;color:#C7B8E3;}
+  body[data-tema="oscuro"] .onboard-card{background:#161d23;}
+  body[data-tema="oscuro"] .skeleton{background:linear-gradient(90deg,#161d23 25%,#263039 37%,#161d23 63%);background-size:400% 100%;}
+  body[data-tema="oscuro"] .report-box{background:#332019;border-color:#5c2e24;color:#FFCDD2;}
+  body[data-tema="oscuro"] details summary{color:#CFD8DC;}
+  body[data-tema="oscuro"] .check-icon.green{background:#193a2a;color:#7FD9AB;border-color:#7FD9AB;}
+  body[data-tema="oscuro"] .check-icon.red{background:#3a1a1a;color:#EF9A9A;border-color:#EF9A9A;}
+  body[data-tema="oscuro"] .estado-servicio.activo{background:#3a2f14;color:#F5C842;}
+  body[data-tema="oscuro"] .estado-servicio.completado{background:#193a2a;color:#7FD9AB;}
+  body[data-tema="oscuro"] .estado-servicio.cancelado{background:#3a1a1a;color:#EF9A9A;}
+  body[data-tema="oscuro"] .dbstatus.on{background:#193a2a;color:#7FD9AB;}
+  body[data-tema="oscuro"] .dbstatus.off{background:#3a2f14;color:#F5C842;}
+  body[data-tema="oscuro"] #sessionInfo,body[data-tema="oscuro"] #sessionInfo *{color:#FFFFFF !important;background:transparent !important;}
+  body[data-tema="oscuro"] #sessionInfo a{color:#F5C842 !important;text-decoration:underline !important;}
+  body[data-tema="oscuro"] #sessionInfo b{color:#F5C842 !important;}
+  body[data-tema="oscuro"] ::selection{background:#F5C842;color:#0b0f12;}
+  body[data-tema="oscuro"] .header-right{color:#FFFFFF !important;}
+  body[data-tema="oscuro"] .header-right *{color:#FFFFFF;}
+  body[data-tema="oscuro"] .header-right a{color:#F5C842 !important;}
+  body[data-tema="oscuro"] .card p,body[data-tema="oscuro"] .card span,body[data-tema="oscuro"] .card label{color:#FFFFFF;}
+  body[data-tema="oscuro"] .card .meta{color:var(--meta-color) !important;}
+  body[data-tema="oscuro"] .card .empty{color:var(--meta-color) !important;}
+  body[data-tema="oscuro"] .stars-display{color:#F5C842 !important;}
+  body[data-tema="oscuro"] .stars-display .count{color:var(--meta-color) !important;}
+  body[data-tema="oscuro"] .starpicker-big span{color:#4a4a4a;}
+  body[data-tema="oscuro"] .starpicker-big span.sel{color:#F5C842;text-shadow:0 0 12px rgba(245,200,66,.7);}
+  body[data-tema="oscuro"] .btn.gold{color:#1D2C36 !important;}
+  body[data-tema="oscuro"] .btn.ghost{color:#FFFFFF !important;}
+  body[data-tema="oscuro"] .msg.mine{color:#FFFFFF !important;}
+  body[data-tema="oscuro"] input::placeholder,body[data-tema="oscuro"] textarea::placeholder{color:#8a98a0 !important;}
+  body[data-tema="oscuro"] .photo-note{background:var(--edit-bg);border-color:var(--edit-border);color:#FFFFFF;}
+  body[data-tema="oscuro"] .verif-row .info span{color:var(--meta-color);}
+  body[data-tema="oscuro"] .verif-row .info b{color:#FFFFFF;}
+  body[data-tema="oscuro"] .fab-soporte .badge-fab{border-color:#0b0f12;}
+  body[data-tema="oscuro"] .cat-check{background:#0b0f12;border-color:#2c3841;color:#FFFFFF;}
+  body[data-tema="oscuro"] .cat-check:has(input:checked){background:var(--gold);border-color:var(--gold);color:#1D2C36;}
+  .cat-check{display:inline-flex;align-items:center;gap:5px;font-weight:400;margin:0 8px 8px 0;font-size:.88rem;background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:6px 12px;cursor:pointer;}
+  .cat-check input{width:auto;margin:0;}
+  .cat-check:has(input:checked){background:var(--gold);border-color:var(--gold);font-weight:700;}
+</style>
+</head>
+<body>
+
+<div id="toastWrap"></div>
+
+<header class="top">
+  <div class="brand">
+    <div class="logo3d" title="Manos a la Obra">
+      <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 22 L20 10 L32 22" stroke="#1D2C36" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 22 L12 32 L28 32 L28 22" stroke="#1D2C36" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="20" cy="22" r="2.5" fill="#1D2C36"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Manos <span class="amp">a la</span> Obra</h1>
+      <span class="tag">Oficios de confianza — León · Managua · Masaya · Chinandega</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <button id="btnCampana" class="notif-bell" title="Notificaciones" style="display:none;">🔔<span id="notifBadge" class="notif-badge" style="display:none;">0</span></button>
+    <div id="sessionInfo" style="font-size:.88rem;text-align:right;"></div>
+    <button id="btnTema" class="theme-toggle" title="Cambiar modo claro/oscuro">🌙</button>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs"></nav>
+<main id="app"></main>
+<footer>Prototipo Manos a la Obra · <span id="dbFooterStatus"></span></footer>
+<button id="fabSoporte" class="fab-soporte" title="Contactar Soporte (arrastra para mover)" style="display:none;">🆘<span id="fabBadge" class="badge-fab" style="display:none;">0</span></button>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBPr3gTQAVrFuXsNkUOEbfo7mEVyFyutv4",
+  authDomain: "manos-a-la-obra-cabb8.firebaseapp.com",
+  projectId: "manos-a-la-obra-cabb8",
+  storageBucket: "manos-a-la-obra-cabb8.firebasestorage.app",
+  messagingSenderId: "321084837778",
+  appId: "1:321084837778:web:0e8175c066b4edc8807b4b"
+};
+const FIREBASE_LISTO = firebaseConfig.apiKey && firebaseConfig.apiKey !== "TU_API_KEY";
+const ADMIN_EMAIL = "npraviao@gmail.com";
+const ADMIN_PASS = 'admin2026';
+const MAX_INTENTOS = 3;
+const MAX_INTENTOS_TOTAL = 4;
+
+let db = null, auth = null, storage = null;
+if(FIREBASE_LISTO){
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  auth = firebase.auth();
+  try{ storage = firebase.storage(); }catch(e){ storage = null; }
+}
+
+function adminEmailActual(){ return FIREBASE_LISTO ? ADMIN_EMAIL : 'admin'; }
+function esEmailAdmin(email){ return email === 'admin' || email === ADMIN_EMAIL; }
+const esEmailAdmin2 = esEmailAdmin;  // ✅ FIX: alias para mantener compatibilidad
+function esUsuarioAdmin(u){ if(!u) return false; if(u.esAdmin === true) return true; return esEmailAdmin(u.email); }
+function categoriasDe(u){ if(!u) return []; if(u.categorias && u.categorias.length) return u.categorias; if(u.categoria) return [u.categoria]; return []; }
+function nombreSoporte(){ return 'Soporte Manos a la Obra'; }
+function estaActivo(u){ if(!u) return false; return u.activo !== false; }
+
+function normalizarEmail(email){
+  email = String(email||'').trim().toLowerCase();
+  const partes = email.split('@');
+  if(partes.length !== 2) return email;
+  const local = partes[0];
+  const dominio = partes[1];
+  if(dominio === 'gmail.com' || dominio === 'googlemail.com'){
+    const localSinPuntos = local.replace(/\./g, '').split('+')[0];
+    return localSinPuntos + '@gmail.com';
+  }
+  return email;
+}
+
+let session = null;
+let usuarioActual = null;
+let currentTab = 'buscar';
+let chatWith = null;
+let calificando = null;
+let calificandoTrabajoId = null;
+let estrellasSel = 0;
+let chatPollTimer = null;
+let filtroCiudad = '';
+let filtroCategoria = '';
+let soloFavoritos = false;
+let soloDisponibles = false;
+let busquedaTexto = '';
+let reportando = false;
+let adminSubTab = 'clientes';
+let adminFiltroVerif = 'todos';
+let adminEditandoEmail = null;
+
+const CIUDADES = ['León','Managua','Masaya','Chinandega'];
+const CATEGORIAS = ['Albañilería','Carpintería','Electricidad','Plomería/Fontanería','Pintura','Mecánica automotriz','Barbería','Estilismo/Peluquería','Jardinería','Limpieza del hogar'];
+const ICONOS = {'Albañilería':'🧱','Carpintería':'🪚','Electricidad':'💡','Plomería/Fontanería':'🚰','Pintura':'🎨','Mecánica automotriz':'🔧','Barbería':'💈','Estilismo/Peluquería':'💇','Jardinería':'🌿','Limpieza del hogar':'🧹'};
+
+const PLANTILLAS_CLIENTE = ['¿Cuánto cobra por este trabajo?','¿Puede hoy mismo?','¿Acepta transferencia o efectivo?','¿Podría pasarme una estimación?','¿Tiene referencias de trabajos anteriores?'];
+const PLANTILLAS_PROFESIONAL = ['¿En qué dirección necesita el servicio?','¿Para cuándo lo necesita?','Le puedo dar un presupuesto por el trabajo.','¿Podría describirme el problema con más detalle?','Con gusto, ¿le parece si paso mañana?'];
+const PLANTILLAS_SOPORTE = ['Necesito ayuda con mi cuenta.','Tengo un problema con un usuario.','No puedo verificar mi teléfono.','Quiero reportar un problema.','Tengo una duda sobre la plataforma.'];
+
+function safeId(s){ return String(s).replace(/[\/\.#\[\]\s]/g,'_'); }
+
+let usersCache = null;
+let usersCacheTime = 0;
+const USERS_CACHE_TTL = 10000;
+
+function invalidarCacheUsers(){ usersCache = null; usersCacheTime = 0; }
+
+async function getUsers(){
+  const ahora = Date.now();
+  if(usersCache && (ahora - usersCacheTime) < USERS_CACHE_TTL) return usersCache;
+  if(FIREBASE_LISTO){
+    const s = await db.collection('usuarios').get();
+    usersCache = s.docs.map(d=>d.data());
+  } else {
+    try{ usersCache = JSON.parse(localStorage.getItem('usuarios')||'[]'); }catch(e){ usersCache = []; }
+  }
+  usersCacheTime = Date.now();
+  return usersCache;
+}
+async function getUsersFresh(){ invalidarCacheUsers(); return await getUsers(); }
+async function saveUsers(arr){
+  invalidarCacheUsers();
+  if(FIREBASE_LISTO){
+    const b = db.batch();
+    arr.forEach(u=> b.set(db.collection('usuarios').doc(safeId(u.email)), u));
+    await b.commit();
+    return;
+  }
+  try{ localStorage.setItem('usuarios', JSON.stringify(arr)); }catch(e){}
+}
+
+async function syncDirectorioPublico(email){
+  if(!FIREBASE_LISTO || !email) return;
+  try{
+    const doc = await db.collection('usuarios').doc(safeId(email)).get();
+    if(!doc.exists){ try{ await db.collection('directorio').doc(safeId(email)).delete(); }catch(e){} return; }
+    const u = doc.data();
+    const publico = {
+      email: u.email, nombre: u.nombre || 'Usuario', tipo: u.tipo,
+      categoria: u.categoria || null,
+      categorias: u.categorias || (u.categoria ? [u.categoria] : []),
+      ciudad: u.ciudad || '', desc: u.desc || '', foto: u.foto || '',
+      disponible: !!u.disponible, verificado: !!u.verificado,
+      activo: estaActivo(u), buscandoServicio: !!u.buscandoServicio,
+      solicitudDesc: u.solicitudDesc || '', buscandoDesde: u.buscandoDesde || null,
+      portafolio: u.portafolio || [],
+      calificaciones: (u.calificaciones || []).map(c => ({estrellas: c.estrellas, comentario: c.comentario || ''})),
+      ultimaConexion: u.ultimaConexion || null
+    };
+    await db.collection('directorio').doc(safeId(email)).set(publico);
+  }catch(e){ console.error('syncDirectorioPublico:', e); }
+}
+
+async function getDirectorio(){
+  if(!FIREBASE_LISTO){
+    try{
+      const arr = JSON.parse(localStorage.getItem('usuarios')||'[]');
+      return arr.map(u => ({...u}));
+    }catch(e){ return []; }
+  }
+  const s = await db.collection('directorio').get();
+  return s.docs.map(d => d.data());
+}
+
+async function getTrabajos(){ if(FIREBASE_LISTO){ const s = await db.collection('trabajos').get(); return s.docs.map(d=>d.data()); } try{ return JSON.parse(localStorage.getItem('trabajos')||'[]'); }catch(e){ return []; } }
+async function saveTrabajos(arr){ if(FIREBASE_LISTO){ const b = db.batch(); arr.forEach(t=> b.set(db.collection('trabajos').doc(safeId(t.id)), t)); await b.commit(); return; } try{ localStorage.setItem('trabajos', JSON.stringify(arr)); }catch(e){} }
+async function getMensajes(){ if(FIREBASE_LISTO){ if(!session) return []; const [s1,s2] = await Promise.all([db.collection('mensajes').where('de','==',session.email).get(), db.collection('mensajes').where('para','==',session.email).get()]); const v=new Set(), r=[]; [...s1.docs,...s2.docs].forEach(d=>{ if(!v.has(d.id)){ v.add(d.id); r.push(d.data()); } }); return r; } try{ return JSON.parse(localStorage.getItem('mensajes')||'[]'); }catch(e){ return []; } }
+async function addMensaje(m){ if(FIREBASE_LISTO){ await db.collection('mensajes').doc(safeId(m.de+'_'+m.para+'_'+m.fecha+'_'+Math.random().toString(36).slice(2,6))).set(m); return; } const a = await getMensajes(); a.push(m); try{ localStorage.setItem('mensajes', JSON.stringify(a)); }catch(e){} }
+async function marcarMensajesLeidos(deE, paraE){ if(FIREBASE_LISTO){ const s = await db.collection('mensajes').where('de','==',deE).where('para','==',paraE).get(); const b = db.batch(); s.docs.forEach(d=> b.update(d.ref, {leido:true})); await b.commit(); return; } const a = await getMensajes(); let c=false; a.forEach(m=>{ if(m.de===deE && m.para===paraE && !m.leido){ m.leido=true; c=true; } }); if(c) try{ localStorage.setItem('mensajes', JSON.stringify(a)); }catch(e){} }
+async function setPrivado(email, datos){ if(FIREBASE_LISTO){ await db.collection('privado').doc(safeId(email)).set({email, ...datos}); } }
+async function getPrivadoTodos(){ if(FIREBASE_LISTO){ const s = await db.collection('privado').get(); return s.docs.map(d=>d.data()); } return []; }
+async function getHilos(){ if(FIREBASE_LISTO){ const s = await db.collection('hilos').get(); return s.docs.map(d=>d.data()); } try{ return JSON.parse(localStorage.getItem('hilos')||'[]'); }catch(e){ return []; } }
+async function saveHilos(arr){ if(FIREBASE_LISTO){ const b = db.batch(); arr.forEach(h=> b.set(db.collection('hilos').doc(safeId(h.par)), h)); await b.commit(); return; } try{ localStorage.setItem('hilos', JSON.stringify(arr)); }catch(e){} }
+async function obtenerHiloActual(par){ const hs = await getHilos(); const h = hs.find(x=>x.par===par); return h ? h.actual : 1; }
+async function avanzarHilo(par){ const hs = await getHilos(); const h = hs.find(x=>x.par===par); if(h){ h.actual = (h.actual||1)+1; } else { hs.push({par, actual:2}); } await saveHilos(hs); }
+async function getReportes(){ if(FIREBASE_LISTO){ const s = await db.collection('reportes').get(); return s.docs.map(d=>d.data()); } try{ return JSON.parse(localStorage.getItem('reportes')||'[]'); }catch(e){ return []; } }
+async function saveReportes(arr){ if(FIREBASE_LISTO){ const b = db.batch(); arr.forEach(r=> b.set(db.collection('reportes').doc(safeId(r.id)), r)); await b.commit(); return; } try{ localStorage.setItem('reportes', JSON.stringify(arr)); }catch(e){} }
+
+async function registrarMovimiento(emailUsuario, texto){
+  if(!FIREBASE_LISTO) return;
+  try{
+    await addMensaje({
+      de: ADMIN_EMAIL, para: emailUsuario,
+      texto: `📋 [Movimiento de cuenta] ${texto}`,
+      fecha: Date.now(), hilo: 1, leido: false, esMovimiento: true
+    });
+  }catch(e){ console.error('registrarMovimiento:', e); }
+}
+
+function aplicarTema(){ let t = localStorage.getItem('tema'); if(!t){ const h = new Date().getHours(); t = (h>=19 || h<7) ? 'oscuro' : 'claro'; } document.body.setAttribute('data-tema', t); const btn = document.getElementById('btnTema'); if(btn) btn.textContent = t==='oscuro' ? '☀️' : '🌙'; }
+function alternarTema(){ const a = document.body.getAttribute('data-tema'); localStorage.setItem('tema', a==='oscuro' ? 'claro' : 'oscuro'); aplicarTema(); }
+
+function convId(a,b){ return [a,b].sort().join('::'); }
+async function hashPassword(pw){ try{ if(window.crypto && window.crypto.subtle){ const e = new TextEncoder().encode(pw); const b = await window.crypto.subtle.digest('SHA-256', e); return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join(''); } }catch(e){} return pw; }
+function toast(msg, tipo){ const w = document.getElementById('toastWrap'); if(!w) return; const e = document.createElement('div'); e.className = 'toast' + (tipo?' '+tipo:''); e.textContent = msg; w.appendChild(e); setTimeout(()=> e.remove(), 4500); }
+const AVATAR_COLORES = ['#2F4858','#3B6E52','#C4841F','#B4452A','#4A7C8C','#6B4E9E','#1F7A6C','#9C5D1F','#4A5D8A','#7A3B5E'];
+function colorAvatar(cat){ const i = CATEGORIAS.indexOf(cat); return AVATAR_COLORES[i>=0 ? i % AVATAR_COLORES.length : 0]; }
+function iniciales(nombre){ const p = String(nombre||'').trim().split(/\s+/); const a = p[0]?p[0][0]:''; const b = p.length>1?p[p.length-1][0]:''; return (a+b).toUpperCase() || '?'; }
+function comprimirImagen(file, maxDim, cal){ maxDim = maxDim||800; cal = cal||0.72; return new Promise(resolve=>{ if(!file){ resolve(''); return; } let d=false; const fin = v => { if(!d){ d=true; resolve(v); } }; try{ const rd = new FileReader(); rd.onload = e=>{ const dd = e.target.result; try{ const img = new Image(); img.onload = ()=>{ try{ let w=img.width, h=img.height; if(!w||!h){ fin(dd); return; } if(w>=h && w>maxDim){ h=Math.round(h*maxDim/w); w=maxDim; } else if(h>w && h>maxDim){ w=Math.round(w*maxDim/h); h=maxDim; } const c=document.createElement('canvas'); c.width=w; c.height=h; const ctx=c.getContext('2d'); if(!ctx){ fin(dd); return; } ctx.drawImage(img,0,0,w,h); fin(c.toDataURL('image/jpeg', cal)); }catch(err){ fin(dd); } }; img.onerror = ()=> fin(dd); img.src = dd; }catch(err){ fin(dd); } }; rd.onerror = ()=> fin(''); rd.readAsDataURL(file); setTimeout(()=> fin(''), 4000); }catch(err){ fin(''); } }); }
+async function subirImagen(file, path, maxDim, calidad){
+  const dataUrl = await comprimirImagen(file, maxDim || 800, calidad || 0.72);
+  if(!dataUrl) return '';
+  if(!FIREBASE_LISTO || !storage){ return dataUrl; }
+  try{
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const sufijo = '_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+    const ruta = path + sufijo + '.jpg';
+    const ref = storage.ref().child(ruta);
+    await ref.put(blob);
+    return await ref.getDownloadURL();
+  }catch(err){ return dataUrl; }
+}
+async function detectarImagenIA(file){ const n = (file.name||'').toLowerCase(); const pIA = ['midjourney','dalle','stable','diffusion','ai-generated','deepfake','firefly']; if(pIA.some(p=> n.includes(p))) return {esIA:true, razon:'El nombre del archivo sugiere que fue generado por IA.'}; if(file.type === 'image/png' && file.size < 50000){ const rd = new FileReader(); return new Promise(resolve=>{ rd.onload = e=>{ const data = new Uint8Array(e.target.result); const tieneEXIF = data.length > 100 && String.fromCharCode(...data.slice(0,20)).includes('Exif'); resolve({esIA: !tieneEXIF, razon: tieneEXIF ? '' : 'La imagen parece generada por IA.'}); }; rd.readAsArrayBuffer(file.slice(0, 512)); }); } return {esIA:false, razon:''}; }
+
+function avatarHtml(user, sm){ const cls = 'avatar' + (sm?' sm':''); if(user && esEmailAdmin2(user.email)){ return `<div class="avatar-soporte${sm?' sm':''}">🆘</div>`; } if(user && user.foto){ return `<img src="${user.foto}" class="${cls}">`; } const col = user && user.categoria ? colorAvatar(user.categoria) : '#2F4858'; const ini = iniciales(user ? (user.nombre||'') : '?'); return `<div class="${cls}" style="background:${col}">${ini}</div>`; }
+function avatarLgHtml(user){ if(user && user.foto) return `<img src="${user.foto}" class="avatar-lg">`; const col = user && user.categoria ? colorAvatar(user.categoria) : '#2F4858'; const ini = iniciales(user ? (user.nombre||'') : '?'); return `<div class="avatar-lg-placeholder" style="background:${col}">${ini}</div>`; }
+function badgeTipo(t){ if(t==='cliente') return `<span class="badge-tipo cliente">CLIENTE</span>`; if(t==='profesional') return `<span class="badge-tipo profesional">PROFESIONAL</span>`; if(t==='soporte') return `<span class="badge-tipo soporte">SOPORTE</span>`; return ''; }
+function checkIcon(v){ return v ? '<span class="check-icon green">✓</span>' : '<span class="check-icon red">✗</span>'; }
+function badgeEstado(u){ if(!u) return ''; if(u.activo === false) return '<span class="badge inactive">🔒 DESACTIVADO</span>'; return '<span class="badge active">✓ ACTIVO</span>'; }
+function starsHtml(prom, total){ if(!prom) return '<span class="stars-display" style="color:#7a8891;">Sin calificaciones aún</span>'; const p = Math.round(parseFloat(prom)); const filled = '★'.repeat(p) + '☆'.repeat(5-p); return `<span class="stars-display">${filled} ${prom} <span class="count">(${total||0})</span></span>`; }
+function tiempoRelativo(ts){ if(!ts) return 'desconocido'; const s = Math.floor((Date.now()-ts)/1000); if(s<60) return 'hace unos segundos'; if(s<3600) return 'hace '+Math.floor(s/60)+' min'; if(s<86400) return 'hace '+Math.floor(s/3600)+' h'; if(s<604800) return 'hace '+Math.floor(s/86400)+' días'; return 'hace tiempo'; }
+function nombreMostrar(u){ if(!u) return 'Usuario'; if(esEmailAdmin2(u.email)) return nombreSoporte(); const n = (u.nombre||'').trim(); if(!n || n.includes('@')) return 'Usuario'; return n; }
+function esAdmin(s){ if(!s) return false; if(FIREBASE_LISTO) return s.email === ADMIN_EMAIL; return s.email === 'admin'; }
+function estaVerificado(u){ if(!u) return false; return !!u.telVerificado && !!u.emailVerificado; }
+function puedeInteractuar(u){ if(!u) return false; if(u.activo === false) return false; return estaVerificado(u); }
+
+const AYUDAS = { buscar:'Filtra por ciudad y categoría para encontrar al profesional que necesitas.', clientes:'Aquí ves a los clientes que están buscando un servicio.', registro:'Crea tu cuenta como cliente o profesional.', login:'Ingresa con tu correo y contraseña.', perfil:'Aquí ves tu información.', mensajes:'Escribe con la persona que contactaste.', favoritos:'Aquí aparecen los usuarios que marcaste como favoritos.', trabajos:'Aquí ves todos tus trabajos.', admin:'Verifica a cada usuario y aprueba o rechaza cada documento.', soporte:'Estás hablando con Soporte Manos a la Obra.', desactivado:'Tu cuenta está desactivada. Puedes ver el motivo, revisar tus mensajes y contactar a Soporte.', calificar:'Califica a la persona con la que realizaste el trabajo. Al enviar, si ambos ya calificaron, el trabajo pasa al historial.' };
+function ayudaVista(t){ return localStorage.getItem('ayuda_'+t) === '1'; }
+function marcarAyudaVista(t){ localStorage.setItem('ayuda_'+t, '1'); }
+function renderAyuda(t){ if(ayudaVista(t)) return ''; return `<div class="tip"><span>💡 ${AYUDAS[t]||''}</span><button data-cerrar-ayuda="${t}">Entendido</button></div>`; }
+function wireAyuda(){ document.querySelectorAll('[data-cerrar-ayuda]').forEach(b=>{ b.onclick = ()=>{ marcarAyudaVista(b.dataset.cerrarAyuda); render(); }; }); }
+
+const ONBOARD_PASOS = [
+  {icon:'🔍', title:'Encuentra al profesional', texto:'Filtra por ciudad y categoría y encuentra a quien necesitas cerca de ti.'},
+  {icon:'💬', title:'Contacta por chat interno', texto:'Toda la coordinación queda registrada en la app.'},
+  {icon:'⭐', title:'Califica al terminar', texto:'Al marcar el trabajo como realizado se te pedirá calificar de inmediato.'},
+  {icon:'🆘', title:'Soporte siempre disponible', texto:'Usa el botón morado 🆘. Puedes arrastrarlo si te estorba.'}
+];
+let onboardPaso = 0;
+function mostrarOnboarding(){ return localStorage.getItem('onboard_visto') !== '1'; }
+function renderOnboarding(){ const p = ONBOARD_PASOS[onboardPaso]; return `<div class="onboard-overlay"><div class="onboard-card"><div class="ob-icon">${p.icon}</div><h2>${p.title}</h2><p>${p.texto}</p><div class="onboard-dots">${ONBOARD_PASOS.map((_,i)=>`<span class="${i===onboardPaso?'on':''}"></span>`).join('')}</div><button class="btn" id="btnOnboardNext">${onboardPaso<ONBOARD_PASOS.length-1 ? 'Siguiente' : '¡Empezar!'}</button><div style="margin-top:8px;"><a href="#" id="btnOnboardSkip" style="font-size:.85rem;text-decoration:underline;opacity:.7;">Saltar</a></div></div></div>`; }
+function wireOnboarding(){ const b = document.getElementById('btnOnboardNext'); const s = document.getElementById('btnOnboardSkip'); const cerrar = ()=>{ localStorage.setItem('onboard_visto','1'); render(); }; if(b) b.onclick = ()=>{ if(onboardPaso<ONBOARD_PASOS.length-1){ onboardPaso++; render(); } else cerrar(); }; if(s) s.onclick = (e)=>{ e.preventDefault(); cerrar(); }; }
+
+async function enviarVerificacionEmail(){
+  if(!FIREBASE_LISTO || !auth || !auth.currentUser){ return { ok:false, msg:'Firebase no está disponible.' }; }
+  try{
+    const actionCodeSettings = { url: window.location.origin + '/index.html?emailVerificado=1', handleCodeInApp: false };
+    await auth.currentUser.sendEmailVerification(actionCodeSettings);
+    return { ok:true };
+  }catch(err){ return { ok:false, msg: err.message || String(err) }; }
+}
+async function sincronizarEmailVerificado(){
+  if(!FIREBASE_LISTO || !auth || !auth.currentUser || !session) return;
+  try{
+    await auth.currentUser.reload();
+    if(auth.currentUser.emailVerified){
+      const users = await getUsersFresh();
+      const me = users.find(u => u.email === session.email);
+      if(me && !me.emailVerificado){ me.emailVerificado = true; await saveUsers(users); toast('✅ Correo verificado correctamente.', 'success'); render(); }
+    }
+  }catch(e){}
+}
+
+async function actualizarCampana(){
+  const bell = document.getElementById('btnCampana'); const badge = document.getElementById('notifBadge');
+  const fab = document.getElementById('fabSoporte'); const fabBadge = document.getElementById('fabBadge');
+  if(!bell || !badge) return;
+  if(!session){ bell.style.display='none'; if(fab) fab.style.display='none'; return; }
+  bell.style.display='block';
+  if(fab && !esAdmin(session)) fab.style.display='flex';
+  try{
+    const m = await getMensajes();
+    const noLeidos = m.filter(x=> x.para===session.email && !x.leido).length;
+    badge.textContent = noLeidos;
+    badge.style.display = noLeidos>0 ? 'flex' : 'none';
+    if(fab && !esAdmin(session)){
+      const adE = adminEmailActual();
+      const nS = m.filter(x=> x.de===adE && x.para===session.email && !x.leido).length;
+      if(fabBadge){ fabBadge.textContent = nS; fabBadge.style.display = nS>0 ? 'flex' : 'none'; }
+    }
+  }catch(e){ badge.style.display='none'; if(fabBadge) fabBadge.style.display='none'; }
+}
+
+function tabsFor(){
+  if(!session) return [{id:'buscar',label:'Buscar profesionales'},{id:'registro',label:'Registrarme'},{id:'login',label:'Iniciar sesión'},{id:'terminos',label:'Términos y uso'}];
+  if(esAdmin(session)) return [{id:'admin',label:'Panel admin'},{id:'mensajes',label:'Mensajes'},{id:'buscar',label:'Buscar'},{id:'terminos',label:'Términos y uso'}];
+  if(usuarioActual && usuarioActual.activo === false){
+    return [
+      {id:'cuentaDesactivada', label:'Mi cuenta'},
+      {id:'mensajes', label:'Mensajes'},
+      {id:'soporte', label:'🆘 Soporte'},
+      {id:'terminos', label:'Términos y uso'}
+    ];
+  }
+  if(session.tipo === 'profesional') return [{id:'clientes',label:'Clientes'},{id:'perfil',label:'Mi perfil'},{id:'mensajes',label:'Mensajes'},{id:'favoritos',label:'⭐ Favoritos'},{id:'trabajos',label:'Mis trabajos'},{id:'soporte',label:'🆘 Soporte'},{id:'terminos',label:'Términos y uso'}];
+  return [{id:'buscar',label:'Buscar profesionales'},{id:'perfil',label:'Mi perfil'},{id:'mensajes',label:'Mensajes'},{id:'favoritos',label:'⭐ Favoritos'},{id:'trabajos',label:'Mis trabajos'},{id:'soporte',label:'🆘 Soporte'},{id:'terminos',label:'Términos y uso'}];
+}
+function renderTabs(){
+  const el = document.getElementById('tabs');
+  const tabs = tabsFor();
+  const virtualTabs = ['calificar'];
+  if(!tabs.find(t=>t.id===currentTab) && !virtualTabs.includes(currentTab)) currentTab = tabs[0].id;
+  const activeId = virtualTabs.includes(currentTab) ? null : currentTab;
+  el.innerHTML = tabs.map(t => `<button data-tab="${t.id}" class="${activeId===t.id?'active':''}">${t.label}</button>`).join('');
+  el.querySelectorAll('button').forEach(b=>{ b.onclick = ()=>{ currentTab = b.dataset.tab; calificandoTrabajoId = null; render(); }; });
+  const si = document.getElementById('sessionInfo');
+  if(si){
+    if(session && !esAdmin(session)){
+      getUsers().then(users=>{
+        const u = users.find(x=>x.email===session.email);
+        const tipo = session.tipo === 'profesional' ? 'PROFESIONAL' : 'CLIENTE';
+        si.innerHTML = `${nombreMostrar(u)} <span style="opacity:.75;font-size:.75rem;">(${tipo})</span> &nbsp; <a href="#" id="logoutLink" style="text-decoration:underline;">salir</a>`;
+        const lo = document.getElementById('logoutLink');
+        if(lo) lo.onclick = async (e)=>{ e.preventDefault(); if(FIREBASE_LISTO && auth){ try{ await auth.signOut(); }catch(err){} } session=null; usuarioActual=null; currentTab='buscar'; render(); };
+      });
+    } else if(session && esAdmin(session)){
+      si.innerHTML = `<b>SOPORTE</b> &nbsp; <a href="#" id="logoutLink" style="text-decoration:underline;">salir</a>`;
+      const lo = document.getElementById('logoutLink');
+      if(lo) lo.onclick = async (e)=>{ e.preventDefault(); if(FIREBASE_LISTO && auth){ try{ await auth.signOut(); }catch(err){} } session=null; usuarioActual=null; currentTab='buscar'; render(); };
+    } else { si.innerHTML = ''; }
+  }
+  document.getElementById('dbFooterStatus').innerHTML = FIREBASE_LISTO ? '<span class="dbstatus on">Base de datos compartida activa</span>' : '<span class="dbstatus off">Modo de prueba local (solo este navegador)</span>';
+  actualizarCampana();
+}
+async function verificarUnicidad(tel, cedula, emailExcluir){
+  const users = await getUsers();
+  const telLimpio = String(tel||'').replace(/\D/g,'');
+  if(telLimpio.length >= 8){
+    const conTel = users.find(u => String(u.tel||'').replace(/\D/g,'') === telLimpio && u.email !== emailExcluir);
+    if(conTel) return { ok:false, msg:'Ese número de teléfono ya está registrado por otro usuario.' };
+  }
+  const cedLimpia = String(cedula||'').replace(/[\s\-\.]/g,'').toLowerCase();
+  if(cedLimpia.length >= 6){
+    if(FIREBASE_LISTO){
+      const privados = await getPrivadoTodos();
+      const conCed = privados.find(p => { const c = String(p.cedula||'').replace(/[\s\-\.]/g,'').toLowerCase(); return c === cedLimpia && p.email !== emailExcluir; });
+      if(conCed) return { ok:false, msg:'Ese número de cédula ya está registrado por otro usuario.' };
+    } else {
+      const conCed = users.find(u => { const c = String(u.cedula||'').replace(/[\s\-\.]/g,'').toLowerCase(); return c === cedLimpia && u.email !== emailExcluir; });
+      if(conCed) return { ok:false, msg:'Ese número de cédula ya está registrado por otro usuario.' };
+    }
+  }
+  return { ok:true };
+}
+function viewRegistro(){
+  return `${renderAyuda('registro')}
+  <div class="card">
+    <h2>Crear cuenta</h2>
+    <label>Soy...</label>
+    <select id="regTipo"><option value="cliente">Cliente (busco un servicio)</option><option value="profesional">Profesional (ofrezco un servicio)</option></select>
+    <label>Nombre completo</label>
+    <input id="regNombre" placeholder="Ej: Juan Pérez">
+    <label>Correo electrónico</label>
+    <input id="regEmail" type="email" placeholder="tucorreo@ejemplo.com">
+    <label>Contraseña (mínimo 6 caracteres)</label>
+    <input id="regPass" type="password">
+    <label>Número de teléfono</label>
+    <input id="regTel" type="tel" placeholder="8888-8888">
+    <label>Número de cédula de identidad</label>
+    <input id="regCedula" placeholder="Ej: 281-xxxxxx-xxxxX">
+    <p class="meta">Uso exclusivamente interno. Solo el admin podrá editarla.</p>
+    <label>Foto de perfil (obligatoria)</label>
+    <input id="regFoto" type="file" accept="image/*">
+    <div class="photo-note"><b>📸 Requisitos:</b><br>• Tipo pasaporte, rostro al frente<br>• <b>Sin gorra, sin lentes, sin mascarilla</b><br>• Fondo claro, buena iluminación<br>• Sin filtros ni imágenes generadas por IA</div>
+    <label>Foto de tu cédula (obligatoria, solo la ve el admin)</label>
+    <input id="regCedulaImg" type="file" accept="image/*">
+    <label>Ciudad</label>
+    <select id="regCiudad">${CIUDADES.map(c=>`<option>${c}</option>`).join('')}</select>
+    <div id="camposProfesional" style="display:none;">
+      <label>Categorías de servicio (marca todas las que ofreces)</label>
+      <div id="regCategorias">
+        ${CATEGORIAS.map((c,i)=>`<label class="cat-check"><input type="checkbox" class="reg-cat-check" value="${c}" ${i===0?'checked':''}> ${ICONOS[c]} ${c}</label>`).join('')}
+      </div>
+      <label>Breve descripción de tu experiencia</label>
+      <textarea id="regDesc" placeholder="Ej: 10 años haciendo instalaciones eléctricas"></textarea>
+      <label>Fotos de tus trabajos (obligatorio, mínimo 1 — recomendado 3)</label>
+      <input id="regPortafolio" type="file" accept="image/*" multiple>
+      <p class="meta">Sube fotos reales de trabajos que hayas realizado. No se permiten imágenes generadas por IA.</p>
+      <label>Documento adicional (opcional)</label>
+      <input id="regDocs" placeholder="Ej: Título técnico INATEC 2016">
+      <label>Imagen del documento (opcional)</label>
+      <input id="regDocImg" type="file" accept="image/*">
+    </div>
+    <label style="display:flex;align-items:flex-start;gap:8px;font-weight:400;margin-top:14px;">
+      <input type="checkbox" id="regTerminos" style="width:auto;margin-top:3px;">
+      <span>Acepto los <a href="#" id="linkTerminos" style="text-decoration:underline;font-weight:600;">Términos y Condiciones</a> y autorizo el tratamiento de mis datos conforme a la <b>Ley 787 de Nicaragua</b>.</span>
+    </label>
+    <button class="btn" id="btnRegistrar">Crear cuenta</button>
+    <div id="regMsg"></div>
+  </div>`;
+}
+function wireRegistro(){
+  const tipoSel = document.getElementById('regTipo'); const camposProf = document.getElementById('camposProfesional');
+  tipoSel.onchange = ()=>{ camposProf.style.display = tipoSel.value==='profesional' ? 'block':'none'; };
+  const linkTerm = document.getElementById('linkTerminos'); if(linkTerm) linkTerm.onclick = (e)=>{ e.preventDefault(); currentTab='terminos'; render(); };
+  document.getElementById('btnRegistrar').onclick = async ()=>{
+    const nombre = document.getElementById('regNombre').value.trim();
+    const email = normalizarEmail(document.getElementById('regEmail').value.trim());
+    const pass = document.getElementById('regPass').value;
+    const tel = document.getElementById('regTel').value.trim();
+    const cedula = document.getElementById('regCedula').value.trim();
+    const ciudad = document.getElementById('regCiudad').value;
+    const tipo = tipoSel.value;
+    const acepta = document.getElementById('regTerminos').checked;
+    const msgEl = document.getElementById('regMsg');
+    const btnReal = document.getElementById('btnRegistrar');
+
+    if(!nombre || !email || !pass || !tel || !cedula){ msgEl.innerHTML = '<p style="color:var(--brick)">Completa todos los campos.</p>'; return; }
+    if(nombre.includes('@')){ msgEl.innerHTML = '<p style="color:var(--brick)">El nombre no puede ser tu correo.</p>'; return; }
+    if(pass.length < 6){ msgEl.innerHTML = '<p style="color:var(--brick)">La contraseña debe tener al menos 6 caracteres.</p>'; return; }
+    if(!acepta){ msgEl.innerHTML = '<p style="color:var(--brick)">Debes aceptar los Términos y Condiciones.</p>'; return; }
+    const esEsteAdmin = (email === ADMIN_EMAIL);
+    const archivoFoto = document.getElementById('regFoto').files[0];
+    if(!esEsteAdmin && !archivoFoto){ msgEl.innerHTML = '<p style="color:var(--brick)">Debes subir una foto de perfil.</p>'; return; }
+    const archivoCed = document.getElementById('regCedulaImg').files[0];
+    if(!esEsteAdmin && !archivoCed){ msgEl.innerHTML = '<p style="color:var(--brick)">Debes subir una foto de tu cédula.</p>'; return; }
+    if(tipo==='profesional' && !esEsteAdmin){
+      const archivosPort = document.getElementById('regPortafolio').files;
+      if(!archivosPort || archivosPort.length < 1){ msgEl.innerHTML = '<p style="color:var(--brick)">Debes subir al menos 1 foto de tus trabajos.</p>'; return; }
+    }
+    msgEl.innerHTML = '<p class="meta">Verificando datos...</p>';
+    const unicidad = await verificarUnicidad(tel, cedula, null);
+    if(!unicidad.ok){ msgEl.innerHTML = `<p style="color:var(--brick)">${unicidad.msg}</p>`; return; }
+    btnReal.disabled = true; btnReal.textContent = 'Creando cuenta...';
+
+    const nuevo = { nombre, email, tel, ciudad, tipo, verificado: esEsteAdmin, activo:true, ultimaConexion:Date.now(), disponible: true, buscandoServicio: tipo==='cliente' ? false : null, telVerificado: esEsteAdmin, emailVerificado: esEsteAdmin, cedulaVerificada: esEsteAdmin, esAdmin: esEsteAdmin, intentosFallidos: 0, revFoto: esEsteAdmin?'aprobado':'pendiente', revCedula: esEsteAdmin?'aprobado':'pendiente', revDoc: esEsteAdmin?'aprobado':'pendiente' };
+    nuevo.foto = archivoFoto ? await subirImagen(archivoFoto, 'perfil/' + safeId(email), 500, 0.78) : '';
+    const privado = { cedula, cedulaImagen: archivoCed ? await subirImagen(archivoCed, 'cedulas/' + safeId(email), 900, 0.7) : '' };
+    if(tipo==='profesional'){
+      const categorias = [...document.querySelectorAll('.reg-cat-check:checked')].map(c=>c.value);
+      if(categorias.length === 0){
+        btnReal.disabled = false; btnReal.textContent = 'Crear cuenta';
+        msgEl.innerHTML = '<p style="color:var(--brick)">Selecciona al menos una categoría.</p>'; return;
+      }
+      nuevo.categorias = categorias;
+      nuevo.categoria = categorias[0];
+      nuevo.desc = document.getElementById('regDesc').value.trim();
+      nuevo.docs = document.getElementById('regDocs').value.trim();
+      nuevo.calificaciones = []; nuevo.portafolio = [];
+      const archivosPort = document.getElementById('regPortafolio').files;
+      for(let i = 0; i < Math.min(archivosPort.length, 6); i++){
+        const comp = await subirImagen(archivosPort[i], 'portafolio/' + safeId(email), 700, 0.7);
+        if(comp) nuevo.portafolio.push(comp);
+      }
+      const arch = document.getElementById('regDocImg').files[0];
+      if(arch) privado.docImagen = await subirImagen(arch, 'documentos/' + safeId(email), 900, 0.7);
+    }
+
+    try{
+      if(FIREBASE_LISTO){
+        try{ await auth.createUserWithEmailAndPassword(email, pass); }
+        catch(errAuth){
+          btnReal.disabled = false; btnReal.textContent = 'Crear cuenta';
+          if(errAuth.code === 'auth/email-already-in-use'){
+            msgEl.innerHTML = '<p style="color:var(--brick)">Ese correo ya está registrado. Si olvidaste la contraseña, usa "¿Olvidaste tu contraseña?" en el login.</p>';
+          } else if(errAuth.code === 'auth/weak-password'){
+            msgEl.innerHTML = '<p style="color:var(--brick)">La contraseña es muy débil (mínimo 6 caracteres).</p>';
+          } else {
+            msgEl.innerHTML = `<p style="color:var(--brick)">Error: ${errAuth.message||errAuth}</p>`;
+          }
+          return;
+        }
+        try{ await enviarVerificacionEmail(); }catch(e){}
+        try{ await db.collection('usuarios').doc(safeId(email)).delete(); }catch(e){}
+        try{ await db.collection('privado').doc(safeId(email)).delete(); }catch(e){}
+      } else {
+        const usersLocal = await getUsers();
+        if(usersLocal.find(u=>u.email===email)){
+          btnReal.disabled=false; btnReal.textContent='Crear cuenta';
+          msgEl.innerHTML = '<p style="color:var(--brick)">Ese correo ya está registrado.</p>'; return;
+        }
+        nuevo.cedula = privado.cedula; nuevo.docImagen = privado.docImagen; nuevo.cedulaImagen = privado.cedulaImagen;
+        nuevo.pass = await hashPassword(pass);
+      }
+      const usersFinales = await getUsers();
+      const usersFiltrados = usersFinales.filter(u => u.email !== email);
+      usersFiltrados.push(nuevo);
+      await saveUsers(usersFiltrados);
+      if(FIREBASE_LISTO) await setPrivado(email, privado);
+      if(FIREBASE_LISTO) await syncDirectorioPublico(email);
+    }catch(err){
+      btnReal.disabled = false; btnReal.textContent = 'Crear cuenta';
+      msgEl.innerHTML = `<p style="color:var(--brick)">Error inesperado: ${err.message||err}</p>`;
+      return;
+    }
+
+    session = {email, tipo}; usuarioActual = nuevo; currentTab = 'perfil';
+    if(FIREBASE_LISTO){ toast('🎉 ¡Cuenta creada! Te enviamos un correo para verificar tu email.', 'success'); }
+    else { toast('¡Cuenta creada!', 'success'); }
+    if(FIREBASE_LISTO && !esEsteAdmin){
+      try{
+        await addMensaje({
+          de: email, para: ADMIN_EMAIL,
+          texto: `🆕 Nuevo registro: ${nombre} (${tipo}) — ${ciudad} · Tel: ${tel}\n\nCorreo: ${email}`,
+          fecha: Date.now(), hilo: 1, leido: false
+        });
+      }catch(e){}
+    }
+    render();
+  };
+}
+
+function viewTerminos(){
+  return `<div class="card"><h2>Términos, Condiciones y Reglas de Uso</h2><p class="meta">Última actualización: versión de producción.</p>
+  <h3>1. ¿Qué es Manos a la Obra?</h3><p>Manos a la Obra <b>conecta</b> a clientes con profesionales de oficios. No somos empleadores ni garantizamos la calidad del trabajo.</p>
+  <h3>2. Reglas básicas</h3><p>Información verdadera, no cuentas falsas, respeto mutuo.</p>
+  <h3>3. Todo dentro de la plataforma</h3><p>Toda coordinación debe hacerse por el chat.</p>
+  <h3>4. Verificación obligatoria</h3><p>Es obligatorio verificar correo y teléfono antes de usar la app.</p>
+  <h3>5. Privacidad (Ley 787)</h3><p>Datos usados solo para esta plataforma. No vendemos ni compartimos con terceros.</p>
+  <h3>6. Edición de datos</h3><p>Solo el administrador puede modificar número de teléfono, cédula, correo y fotos de identificación.</p>
+  <h3>7. Bloqueo por intentos fallidos</h3><p>Tras 3 intentos fallidos verás una advertencia. Al 4to fallo, la cuenta se desactiva.</p>
+  <h3>8. Cuentas desactivadas</h3><p>Si tu cuenta es desactivada puedes ver tu información, revisar mensajes y contactar a Soporte.</p>
+  <h3>9. Flujo de trabajos</h3><p>El cliente marca el trabajo como realizado → se califica al profesional. El profesional también puede validar al cliente. Cuando ambos califican, el trabajo pasa al historial.</p>
+  <h3>10. Soporte</h3><p>Puedes contactar a Soporte desde el botón 🆘.</p></div>`;
+}
+
+function viewLogin(){
+  return `${renderAyuda('login')}<div class="card"><h2>Iniciar sesión</h2>
+    <label>Correo</label><input id="logEmail" type="email">
+    <label>Contraseña</label><input id="logPass" type="password">
+    <p class="meta" style="text-align:right;margin-top:6px;"><a href="#" id="linkOlvide" style="text-decoration:underline;font-weight:600;color:var(--sky);">¿Olvidaste tu contraseña?</a></p>
+    <button class="btn" id="btnLogin">Entrar</button>
+    <div id="logMsg"></div>
+    <p class="meta" style="margin-top:12px;">⚠️ Tras 3 intentos fallidos, la cuenta se desactiva al 4to.</p></div>`;
+}
+function wireLogin(){
+  const linkOlvide = document.getElementById('linkOlvide');
+  if(linkOlvide) linkOlvide.onclick = async (e)=>{
+    e.preventDefault();
+    const msgEl = document.getElementById('logMsg');
+    const emailInput = prompt('Ingresa el correo con el que te registraste para enviarte un enlace de recuperación:');
+    if(!emailInput) return;
+    const email = normalizarEmail(emailInput.trim());
+    if(!email || !email.includes('@')){ msgEl.innerHTML = '<p style="color:var(--brick)">Ingresa un correo válido.</p>'; return; }
+    if(!FIREBASE_LISTO){ msgEl.innerHTML = '<p style="color:var(--brick)">Recuperación solo funciona con Firebase conectado.</p>'; return; }
+    try{
+      await auth.sendPasswordResetEmail(email);
+      msgEl.innerHTML = '<p style="color:var(--forest);font-weight:700;">📧 Enviamos un correo a ' + email + ' con instrucciones.</p>';
+      toast('📧 Correo de recuperación enviado.', 'success');
+    }catch(err){
+      msgEl.innerHTML = '<p style="color:var(--brick)">' + ((err.code||'').includes('user-not-found') ? 'No hay ninguna cuenta con ese correo.' : 'Error al enviar: '+(err.message||err)) + '</p>';
+    }
+  };
+  document.getElementById('btnLogin').onclick = async ()=>{
+    const email = normalizarEmail(document.getElementById('logEmail').value.trim());
+    const pass = document.getElementById('logPass').value;
+    const msgEl = document.getElementById('logMsg');
+    const btn = document.getElementById('btnLogin');
+
+    if(FIREBASE_LISTO){
+      btn.disabled = true; btn.textContent = 'Entrando...';
+      try{ await auth.signInWithEmailAndPassword(email, pass); }
+      catch(err){
+        const usersAux = await getUsersFresh();
+        const uAux = usersAux.find(x=>x.email===email);
+        if(uAux){
+          uAux.intentosFallidos = (uAux.intentosFallidos||0) + 1;
+          if(uAux.intentosFallidos >= MAX_INTENTOS_TOTAL){
+            uAux.activo = false; uAux.desactivadoPor = 'Contraseña incorrecta repetida'; uAux.fechaDesactivacion = Date.now();
+            await saveUsers(usersAux);
+            try{ await registrarMovimiento(email, `🔒 Cuenta desactivada automáticamente por 4 intentos de contraseña incorrecta.`); }catch(e){}
+            btn.disabled = false; btn.textContent = 'Entrar';
+            msgEl.innerHTML = '<p style="color:var(--brick)">Demasiados intentos fallidos. Tu cuenta ha sido DESACTIVADA. Contacta a Soporte.</p>'; return;
+          }
+          await saveUsers(usersAux);
+          btn.disabled = false; btn.textContent = 'Entrar';
+          msgEl.innerHTML = uAux.intentosFallidos >= MAX_INTENTOS
+            ? '<p style="color:var(--brick)">Contraseña incorrecta. ⚠️ Si falla una vez más, tu cuenta será DESACTIVADA.</p>'
+            : '<p style="color:var(--brick)">Correo o contraseña incorrectos.</p>';
+        } else {
+          btn.disabled = false; btn.textContent = 'Entrar';
+          msgEl.innerHTML = '<p style="color:var(--brick)">Correo o contraseña incorrectos.</p>';
+        }
+        return;
+      }
+      const users = await getUsersFresh();
+      const u = users.find(x=>x.email===email);
+      if(!u){ await auth.signOut(); btn.disabled=false; btn.textContent='Entrar'; msgEl.innerHTML = '<p style="color:var(--brick)">Usuario no encontrado. Contacta a Soporte.</p>'; return; }
+      if(!u.activo && !esUsuarioAdmin(u)){
+        u.intentosFallidos = 0; u.ultimaConexion = Date.now();
+        await saveUsers(users);
+        session = {email, tipo: u.tipo}; usuarioActual = u;
+        currentTab = 'cuentaDesactivada';
+        btn.disabled = false; btn.textContent = 'Entrar';
+        toast('Tu cuenta está desactivada. Puedes contactar a Soporte.', 'warn');
+        render(); return;
+      }
+      if(email === ADMIN_EMAIL && (!u.verificado || !u.telVerificado || !u.emailVerificado || !u.cedulaVerificada)){
+        u.verificado = true; u.telVerificado = true; u.emailVerificado = true; u.cedulaVerificada = true; u.esAdmin = true;
+      }
+      u.intentosFallidos = 0; u.ultimaConexion = Date.now(); await saveUsers(users);
+      session = {email, tipo: u.tipo}; usuarioActual = u;
+      currentTab = (email === ADMIN_EMAIL) ? 'admin' : (u.tipo==='profesional' ? 'clientes' : 'buscar');
+      if(email === ADMIN_EMAIL){
+        try{
+          const dirSnap = await db.collection('directorio').get();
+          const yaEnDir = new Set(dirSnap.docs.map(d => d.id));
+          const usAll = await getUsers();
+          for(const usuario of usAll){
+            if(!yaEnDir.has(safeId(usuario.email))){ await syncDirectorioPublico(usuario.email); }
+          }
+        }catch(e){}
+      }
+      if(u.notificacionReactivacion){ toast('✅ Tu cuenta ha sido reactivada por Soporte.', 'success'); u.notificacionReactivacion = 0; await saveUsers(users); }
+      else { toast('¡Bienvenido/a!', 'success'); }
+      render(); return;
+    }
+
+    const users = await getUsers();
+    const u = users.find(x=>x.email===email);
+    if(!u){ msgEl.innerHTML = '<p style="color:var(--brick)">Correo o contraseña incorrectos.</p>'; return; }
+    const passCif = await hashPassword(pass);
+    if(u.pass !== passCif){
+      u.intentosFallidos = (u.intentosFallidos||0)+1;
+      if(u.intentosFallidos >= MAX_INTENTOS_TOTAL){ u.activo = false; u.desactivadoPor = 'Contraseña incorrecta repetida'; u.fechaDesactivacion = Date.now(); await saveUsers(users); msgEl.innerHTML = '<p style="color:var(--brick)">Cuenta DESACTIVADA.</p>'; return; }
+      await saveUsers(users);
+      msgEl.innerHTML = u.intentosFallidos >= MAX_INTENTOS
+        ? '<p style="color:var(--brick)">⚠️ Si falla una vez más, la cuenta se desactivará.</p>'
+        : '<p style="color:var(--brick)">Correo o contraseña incorrectos.</p>';
+      return;
+    }
+    if(!u.activo && !esUsuarioAdmin(u)){
+      u.intentosFallidos = 0; u.ultimaConexion = Date.now(); await saveUsers(users);
+      session = {email:u.email, tipo:u.tipo}; usuarioActual = u;
+      currentTab = 'cuentaDesactivada';
+      toast('Tu cuenta está desactivada.', 'warn');
+      render(); return;
+    }
+    u.intentosFallidos = 0; u.ultimaConexion = Date.now(); await saveUsers(users);
+    session = {email:u.email, tipo:u.tipo}; usuarioActual = u;
+    currentTab = u.tipo==='profesional' ? 'clientes' : 'buscar';
+    toast('¡Bienvenido/a!', 'success'); render();
+  };
+}
+
+/* ---------- VISTA: CUENTA DESACTIVADA ---------- */
+function viewCuentaDesactivada(){
+  const u = usuarioActual;
+  if(!u) return '<p class="empty">Perfil no encontrado.</p>';
+  return `
+  ${renderAyuda('desactivado')}
+  <div class="card" style="text-align:center;">
+    ${avatarLgHtml(u)}
+    <h2 style="margin-top:14px;">${nombreMostrar(u)}</h2>
+    <p style="margin:6px 0;">${badgeTipo(u.tipo)}</p>
+    <span class="badge inactive" style="font-size:.9rem;padding:8px 20px;">🔒 DESACTIVADO</span>
+  </div>
+  <div class="card card-danger">
+    <h3 style="color:var(--brick);">Motivo de la desactivación</h3>
+    <p style="font-size:1rem;"><b>${u.desactivadoPor || 'No especificado'}</b></p>
+    ${u.fechaDesactivacion ? `<p class="meta">Fecha: ${new Date(u.fechaDesactivacion).toLocaleString()}</p>` : ''}
+  </div>
+  <div class="card">
+    <h3>Tu información</h3>
+    <p><b>Correo:</b> ${u.email}</p>
+    <p><b>Teléfono:</b> ${u.tel}</p>
+    <p><b>Ciudad:</b> ${u.ciudad}</p>
+    <p><b>Tipo:</b> ${u.tipo === 'profesional' ? 'Profesional' : 'Cliente'}</p>
+  </div>
+  <div class="card">
+    <h3>¿Qué puedes hacer?</h3>
+    <ul style="padding-left:20px;">
+      <li>Ver tu información y estado</li>
+      <li>Revisar tus mensajes anteriores</li>
+      <li>Contactar a Soporte para solicitar reactivación</li>
+    </ul>
+    <p class="meta" style="margin-top:10px;">🚫 Mientras estés desactivado NO podrás contactar a otros usuarios ni aparecer en búsquedas.</p>
+    <button class="btn purple" id="btnContactarAdminDesdeBloqueo">🆘 Contactar a Soporte</button>
+    <button class="btn secondary" id="btnIrMensajesDesactivado" style="margin-left:8px;">💬 Ver mis mensajes</button>
+  </div>`;
+}
+function wireCuentaDesactivada(){
+  const btn = document.getElementById('btnContactarAdminDesdeBloqueo');
+  if(btn) btn.onclick = ()=>{ chatWith = adminEmailActual(); currentTab = 'mensajes'; render(); };
+  const btnM = document.getElementById('btnIrMensajesDesactivado');
+  if(btnM) btnM.onclick = ()=>{ currentTab = 'mensajes'; render(); };
+}
+
+function viewVerificacion(u){
+  const faltaAlgo = !u.telVerificado || !u.emailVerificado;
+  let bannerEstado = '';
+  if(u.verificado){
+    bannerEstado = `<div class="card card-success" style="text-align:center;">
+      <p style="font-weight:700;font-size:1.1rem;">🎉 ¡Tu cuenta está verificada!</p>
+      <p class="meta">Ya puedes usar Manos a la Obra para contactar y ser contactado.</p>
+    </div>`;
+  } else if(u.emailVerificado && u.telVerificado){
+    bannerEstado = `<div class="card card-warn" style="text-align:center;">
+      <p style="font-weight:700;font-size:1.1rem;">⏳ Tu cuenta está en revisión</p>
+      <p class="meta">Correo y teléfono verificados. Nuestro equipo está revisando tu cédula y documentos.</p>
+    </div>`;
+  } else {
+    bannerEstado = `<div class="card card-info" style="text-align:center;">
+      <p style="font-weight:700;font-size:1.05rem;">🔒 Verifica tu identidad</p>
+      <p class="meta">Completa los pasos de abajo para activar tu cuenta.</p>
+    </div>`;
+  }
+  let bloqueEmail = '';
+  if(u.emailVerificado){
+    bloqueEmail = `<div class="verif-row"><div class="info"><b>${u.email}</b><span>✓ Verificado</span></div>${checkIcon(true)}</div>`;
+  } else if(FIREBASE_LISTO){
+    bloqueEmail = `<div class="verif-row"><div class="info"><b>${u.email}</b><span>Pendiente de verificación</span></div>${checkIcon(false)}</div>
+      <p class="meta" style="margin-top:8px;">Te enviamos un correo con un enlace de verificación. Ábrelo desde tu bandeja de entrada.</p>
+      <button class="btn secondary btn-sm" id="btnReenviarEmail">📧 Reenviar correo de verificación</button>
+      <button class="btn ghost btn-sm" id="btnYaVerifique">Ya verifiqué, actualizar</button>`;
+  } else {
+    bloqueEmail = `<div class="verif-row"><div class="info"><b>${u.email}</b><span>Pendiente (modo local)</span></div>${checkIcon(false)}</div>
+      <button class="btn secondary btn-sm" id="btnEnviarCodigoEmail">Enviar código a mi correo</button>
+      <div id="boxEmailCode" style="display:none;margin-top:10px;">
+        <p class="meta" style="color:var(--gold-deep);font-weight:700;">📧 Código: <span id="fakeEmailCode" style="font-size:1.2rem;letter-spacing:3px;">------</span></p>
+        <input id="inputEmailCode" placeholder="Ingresa el código de 6 dígitos">
+        <button class="btn gold btn-sm" id="btnConfirmarEmailCode">Confirmar</button>
+      </div>`;
+  }
+  const bloqueTel = u.telVerificado
+    ? `<div class="verif-row"><div class="info"><b>${u.tel}</b><span>✓ Verificado</span></div>${checkIcon(true)}</div>`
+    : `<div class="verif-row"><div class="info"><b>${u.tel}</b><span>Pendiente</span></div>${checkIcon(false)}</div>
+       <p class="meta" style="margin-top:8px;color:var(--gold-deep);">⚠️ Verificación SMS simulada hasta pasar a plan Blaze.</p>
+       <button class="btn secondary btn-sm" id="btnEnviarCodigoTel">📱 Simular envío de SMS</button>
+       <div id="boxTelCode" style="display:none;margin-top:10px;">
+         <p class="meta" style="color:var(--gold-deep);font-weight:700;">📱 Código simulado: <span id="fakeTelCode" style="font-size:1.2rem;letter-spacing:3px;">------</span></p>
+         <input id="inputTelCode" placeholder="Ingresa el código de 6 dígitos">
+         <button class="btn gold btn-sm" id="btnConfirmarTelCode">Confirmar</button>
+       </div>`;
+
+  return `
+  ${bannerEstado}
+  <div class="card" style="text-align:center;">
+    <h2>Verifica tu identidad</h2>
+    <p>¿Tienes problemas? Usa el botón 🆘 abajo a la derecha.</p>
+  </div>
+  <div class="card"><h3>📧 Correo electrónico</h3>${bloqueEmail}</div>
+  <div class="card"><h3>📱 Teléfono</h3>${bloqueTel}</div>
+  <div class="card"><h3>🪪 Cédula de identidad</h3><div class="verif-row"><div class="info"><b>${u.cedula || '(no registrada)'}</b><span>${u.cedulaVerificada ? '✓ Verificada por Soporte' : 'Pendiente de revisión'}</span></div>${checkIcon(u.cedulaVerificada)}</div></div>
+  <div class="card" style="text-align:center;">
+    ${faltaAlgo ? '<p style="color:var(--brick);font-weight:700;">Verifica correo Y teléfono para usar la app.</p>' : '<p style="color:var(--forest);font-weight:700;">✓ Todo verificado.</p>'}
+    <button class="btn ghost" id="btnLogoutVerif">Cerrar sesión</button>
+  </div>`;
+}
+function wireVerificacion(u){
+  const btnLogout = document.getElementById('btnLogoutVerif');
+  if(btnLogout) btnLogout.onclick = async ()=>{
+    if(FIREBASE_LISTO && auth){ try{ await auth.signOut(); }catch(e){} }
+    session=null; usuarioActual=null; currentTab='buscar'; render();
+  };
+  const btnReenviar = document.getElementById('btnReenviarEmail');
+  if(btnReenviar) btnReenviar.onclick = async ()=>{
+    btnReenviar.disabled = true; btnReenviar.textContent = 'Enviando...';
+    const res = await enviarVerificacionEmail();
+    btnReenviar.disabled = false; btnReenviar.textContent = '📧 Reenviar correo de verificación';
+    if(res.ok){ toast('📧 Correo enviado a ' + session.email, 'success'); }
+    else if((res.msg||'').includes('too-many-requests')){ toast('⚠️ Espera 1-2 minutos antes de reenviar.', 'warn'); }
+    else { toast('No se pudo enviar: ' + res.msg, 'error'); }
+  };
+  const btnYa = document.getElementById('btnYaVerifique');
+  if(btnYa) btnYa.onclick = async ()=>{ await sincronizarEmailVerificado(); };
+  const btnEnvEmail = document.getElementById('btnEnviarCodigoEmail');
+  if(btnEnvEmail) btnEnvEmail.onclick = ()=>{ const c = String(Math.floor(100000 + Math.random()*900000)); window._codigoEmail = c; document.getElementById('fakeEmailCode').textContent = c; document.getElementById('boxEmailCode').style.display = 'block'; toast('📧 Código enviado.', 'success'); };
+  const btnConfEmail = document.getElementById('btnConfirmarEmailCode');
+  if(btnConfEmail) btnConfEmail.onclick = async ()=>{
+    const input = document.getElementById('inputEmailCode').value.trim();
+    if(input !== window._codigoEmail){ toast('Código incorrecto.', 'error'); return; }
+    const users = await getUsersFresh();
+    const me = users.find(x=>x.email===session.email);
+    if(me){ me.emailVerificado = true; await saveUsers(users); }
+    await syncDirectorioPublico(session.email);
+    toast('✓ Correo verificado.', 'success');
+    currentTab = 'perfil'; render();
+  };
+  const btnEnvTel = document.getElementById('btnEnviarCodigoTel');
+  if(btnEnvTel) btnEnvTel.onclick = ()=>{
+    const c = String(Math.floor(100000 + Math.random()*900000));
+    window._codigoTel = c;
+    document.getElementById('fakeTelCode').textContent = c;
+    document.getElementById('boxTelCode').style.display = 'block';
+    toast('📱 Código SMS enviado a ' + (u.tel || 'tu teléfono') + '.', 'success');
+  };
+  const btnConfTel = document.getElementById('btnConfirmarTelCode');
+  if(btnConfTel) btnConfTel.onclick = async ()=>{
+    const input = document.getElementById('inputTelCode').value.trim();
+    if(input !== window._codigoTel){ toast('Código incorrecto.', 'error'); return; }
+    const users = await getUsersFresh();
+    const me = users.find(x=>x.email===session.email);
+    if(me){ me.telVerificado = true; await saveUsers(users); }
+    await syncDirectorioPublico(session.email);
+    const us2 = await getUsersFresh();
+    const me2 = us2.find(x=>x.email===session.email);
+    toast(me2 && me2.emailVerificado && me2.telVerificado ? '🎉 ¡Todo verificado!' : '✓ Teléfono verificado.', 'success');
+    currentTab = 'perfil'; render();
+  };
+}
+
+/* ---------- LISTA DE USUARIOS ---------- */
+async function renderListaUsuarios(tipoMostrar){
+  const users = session ? await getUsers() : await getDirectorio();
+  const me = session ? users.find(u=>u.email===session.email) : null;
+  const misFavs = (me && me.favoritos) || [];
+  const txt = busquedaTexto.trim().toLowerCase();
+  const trabajosTodos = await getTrabajos();
+  const yoPuedo = me ? puedeInteractuar(me) : false;
+  const esAdm = esAdmin(session);
+  const lista = users.filter(u=>u.tipo===tipoMostrar &&
+    !esUsuarioAdmin(u) &&
+    u.verificado === true &&
+    estaActivo(u) &&
+    (!filtroCiudad || u.ciudad===filtroCiudad) &&
+    (tipoMostrar!=='profesional' || !filtroCategoria || categoriasDe(u).includes(filtroCategoria)) &&
+    (!soloFavoritos || misFavs.includes(u.email)) &&
+    (!soloDisponibles || u.disponible) &&
+    (!txt || (u.nombre||'').toLowerCase().includes(txt) || (u.desc||'').toLowerCase().includes(txt) || categoriasDe(u).join(' ').toLowerCase().includes(txt))
+  );
+  if(!lista.length) return '<p class="empty">No hay usuarios verificados disponibles. Los usuarios aparecen cuando el admin los aprueba y están activos.</p>';
+  return lista.map(p=>{
+    const cals = p.calificaciones || [];
+    const prom = cals.length ? (cals.reduce((a,b)=>a+b.estrellas,0)/cals.length).toFixed(1) : null;
+    const esFav = misFavs.includes(p.email);
+    const fotos = (p.portafolio||[]).slice(0,3);
+    const th = trabajosTodos.filter(t=>(t.profesional===p.email || t.cliente===p.email) && t.estado==='completado').length;
+    const disp = p.disponible;
+    const ult = p.ultimaConexion ? tiempoRelativo(p.ultimaConexion) : null;
+    const esMi = session && p.email === session.email;
+    const pVerif = puedeInteractuar(p);
+    return `<div class="card">
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        ${avatarHtml(p)}
+        <div style="flex:1;">
+          <p class="prof-name">${nombreMostrar(p)} <span class="badge ok">Verificado ✓</span> ${badgeEstado(p)} ${esMi ? '<span class="badge pending">Es tu perfil</span>':''}</p>
+          <p class="meta">${tipoMostrar==='profesional' ? categoriasDe(p).map(c=>(ICONOS[c]||'')+' '+c).join(' · ') + ' · ' : ''}${p.ciudad}</p>
+          <p class="meta">${disp ? '<span class="dot-online"></span>Disponible' : '<span class="dot-offline"></span>No disponible'}${ult ? ' · Última conexión: '+ult : ''}</p>
+        </div>
+      </div>
+      <p>${p.desc || ''}</p>
+      ${fotos.length ? `<div class="portafolio-fotos">${fotos.map(f=>`<img src="${f}">`).join('')}</div>` : ''}
+      <p style="margin-top:10px;">${starsHtml(prom, cals.length)}${th ? ' <span style="font-size:.8rem;color:#7a8891;">· '+th+' trabajos</span>' : ''}</p>
+      ${esMi ? `<p class="meta" style="font-style:italic;">Es tu propio perfil.</p>`
+        : !session ? `<p class="meta">Inicia sesión para contactar.</p>`
+        : (!yoPuedo && !esAdm) ? `<p class="meta" style="color:var(--gold-deep);font-weight:700;">⚠️ Verifica tu correo y teléfono para contactar.</p>`
+        : (!pVerif && !esAdm) ? `<p class="meta" style="color:var(--brick);font-weight:700;">🚫 Este usuario no está disponible para contactar ahora.</p>`
+        : `<button class="btn" data-contact="${p.email}">Contactar</button>
+           <button class="btn ${esFav?'gold':'ghost'}" data-fav="${p.email}" style="margin-left:8px;">${esFav?'★ Guardado':'☆ Guardar'}</button>`}
+    </div>`;
+  }).join('');
+}
+function wireBotonesLista(){
+  document.querySelectorAll('[data-fav]').forEach(b=>{ b.onclick = async ()=>{ const us = await getUsersFresh(); const me = us.find(x=>x.email===session.email); if(!me) return; me.favoritos = me.favoritos||[]; const em = b.dataset.fav; const i = me.favoritos.indexOf(em); if(i>=0) me.favoritos.splice(i,1); else me.favoritos.push(em); await saveUsers(us); toast(i>=0 ? 'Quitado de favoritos.' : 'Guardado.', 'success'); render(); }; });
+  document.querySelectorAll('[data-contact]').forEach(b=>{ b.onclick = ()=>{ chatWith = b.dataset.contact; currentTab='mensajes'; render(); }; });
+}
+
+async function viewBuscar(){
+  const users = session ? await getUsers() : await getDirectorio();
+  const tP = users.filter(u=>u.tipo==='profesional' && estaActivo(u) && u.verificado && !esUsuarioAdmin(u)).length;
+  const tV = tP;
+  const tD = users.filter(u=>u.tipo==='profesional' && u.disponible && estaActivo(u) && u.verificado && !esUsuarioAdmin(u)).length;
+  const hay = tP > 0;
+  const bs = hay ? `<div class="stats"><div><div class="num">${tP}</div><div class="lbl">Profesionales</div></div><div><div class="num">${tV}</div><div class="lbl">Verificados</div></div><div><div class="num">${tD}</div><div class="lbl">Disponibles ahora</div></div></div>` : `<div class="stats"><div><div class="num">${CATEGORIAS.length}</div><div class="lbl">Categorías</div></div><div><div class="num">4</div><div class="lbl">Ciudades</div></div></div><p style="margin:10px 0 0;font-size:.85rem;opacity:.9;">✨ Sé de los primeros!</p>`;
+  const hero = `<div class="hero"><p class="eyebrow">Manos a la Obra</p><h2>Encuentra ayuda de confianza, cerca de ti</h2><p>Conectamos personas con profesionales verificados en León, Managua, Masaya y Chinandega.</p>${bs}<div class="steps3"><div><div class="n">1</div>Filtra por ciudad y categoría</div><div><div class="n">2</div>Contacta por chat</div><div><div class="n">3</div>Al terminar, califica</div></div></div>`;
+  const fil = `<div class="card"><label>Buscar por palabra clave</label><input id="buscarTexto" placeholder="Ej: gotera, corte de cabello" value="${busquedaTexto.replace(/"/g,'&quot;')}">
+    <label style="margin-top:14px;">Ciudad</label><div><span class="pill ${filtroCiudad===''?'on':''}" data-c="">Todas</span>${CIUDADES.map(c=>`<span class="pill ${filtroCiudad===c?'on':''}" data-c="${c}">${c}</span>`).join('')}</div>
+    <label>Categoría</label><div><span class="pill ${filtroCategoria===''?'on':''}" data-cat="">Todas</span>${CATEGORIAS.map(c=>`<span class="pill ${filtroCategoria===c?'on':''}" data-cat="${c}">${ICONOS[c]} ${c}</span>`).join('')}</div>
+    ${session ? `<label>&nbsp;</label><span class="pill ${soloDisponibles?'on':''}" data-disptoggle="1">🟢 Disponibles ahora</span><span class="pill ${soloFavoritos?'on':''}" data-favtoggle="1">❤️ Solo mis favoritos</span>` : ''}</div>
+    <div class="reset-bar"><button class="btn warn big" id="btnResetFiltros">🔄 REINICIAR FILTROS</button></div>`;
+  return renderAyuda('buscar') + hero + fil + `<div id="listaProfesionales">${await renderListaUsuarios('profesional')}</div>`;
+}
+function wireBuscar(){
+  document.querySelectorAll('[data-c]').forEach(p=>{ p.onclick = ()=>{ filtroCiudad = p.dataset.c; render(); }; });
+  document.querySelectorAll('[data-cat]').forEach(p=>{ p.onclick = ()=>{ filtroCategoria = p.dataset.cat; render(); }; });
+  document.querySelectorAll('[data-favtoggle]').forEach(p=>{ p.onclick = ()=>{ soloFavoritos = !soloFavoritos; render(); }; });
+  document.querySelectorAll('[data-disptoggle]').forEach(p=>{ p.onclick = ()=>{ soloDisponibles = !soloDisponibles; render(); }; });
+  const r = document.getElementById('btnResetFiltros'); if(r) r.onclick = ()=>{ filtroCiudad=''; filtroCategoria=''; soloFavoritos=false; soloDisponibles=false; busquedaTexto=''; toast('Filtros reiniciados.', 'success'); render(); };
+  const ib = document.getElementById('buscarTexto');
+  if(ib){ let t=null; ib.oninput = ()=>{ busquedaTexto = ib.value; if(t) clearTimeout(t); t = setTimeout(async ()=>{ const c = document.getElementById('listaProfesionales'); if(c){ c.innerHTML = '<div class="card"><div class="skeleton" style="width:60%"></div></div>'; } const n = await renderListaUsuarios('profesional'); if(c){ c.innerHTML = n; wireBotonesLista(); } }, 350); }; }
+  wireBotonesLista();
+}
+
+async function viewClientes(){
+  const users = await getUsers();
+  const clientesBuscando = users.filter(u=>u.tipo==='cliente' && estaActivo(u) && u.verificado && u.buscandoServicio === true && !esUsuarioAdmin(u));
+  const hero = `<div class="hero"><p class="eyebrow">Manos a la Obra</p><h2>Clientes buscando servicio</h2><p>Aquí ves solo los clientes que activaron "Busco un servicio ahora".</p><div class="stats"><div><div class="num">${clientesBuscando.length}</div><div class="lbl">Clientes buscando ahora</div></div></div></div>`;
+  const fil = `<div class="card"><label>Buscar</label><input id="buscarTexto" placeholder="Ej: Juan" value="${busquedaTexto.replace(/"/g,'&quot;')}">
+    <label style="margin-top:14px;">Ciudad</label><div><span class="pill ${filtroCiudad===''?'on':''}" data-c="">Todas</span>${CIUDADES.map(c=>`<span class="pill ${filtroCiudad===c?'on':''}" data-c="${c}">${c}</span>`).join('')}</div>
+    ${session ? `<label>&nbsp;</label><span class="pill ${soloFavoritos?'on':''}" data-favtoggle="1">❤️ Solo mis favoritos</span>` : ''}</div>
+    <div class="reset-bar"><button class="btn warn big" id="btnResetFiltros">🔄 REINICIAR FILTROS</button></div>`;
+  const me = session ? users.find(u=>u.email===session.email) : null;
+  const misFavs = (me && me.favoritos) || [];
+  const txt = busquedaTexto.trim().toLowerCase();
+  const lista = users.filter(u=>u.tipo==='cliente' && !esUsuarioAdmin(u) && u.verificado === true && estaActivo(u) && u.buscandoServicio === true &&
+    (!filtroCiudad || u.ciudad===filtroCiudad) &&
+    (!soloFavoritos || misFavs.includes(u.email)) &&
+    (!txt || (u.nombre||'').toLowerCase().includes(txt) || (u.desc||'').toLowerCase().includes(txt))
+  );
+  const yoPuedo = me ? puedeInteractuar(me) : false;
+  const esAdm = esAdmin(session);
+  const htmlLista = lista.length ? lista.map(p=>{
+    const cals = p.calificaciones || [];
+    const prom = cals.length ? (cals.reduce((a,b)=>a+b.estrellas,0)/cals.length).toFixed(1) : null;
+    const esFav = misFavs.includes(p.email);
+    const esMi = session && p.email === session.email;
+    const pVerif = puedeInteractuar(p);
+    return `<div class="card">
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        ${avatarHtml(p)}
+        <div style="flex:1;">
+          <p class="prof-name">${nombreMostrar(p)} <span class="badge ok">Verificado ✓</span> ${badgeEstado(p)} <span class="badge pending">🔍 Buscando servicio</span></p>
+          <p class="meta">${p.ciudad}</p>
+          <p class="meta">Publicado: ${tiempoRelativo(p.buscandoDesde || p.ultimaConexion)}</p>
+        </div>
+      </div>
+      <p>${p.solicitudDesc || p.desc || ''}</p>
+      <p style="margin-top:10px;">${starsHtml(prom, cals.length)}</p>
+      ${esMi ? `<p class="meta" style="font-style:italic;">Es tu propio perfil.</p>`
+        : !session ? `<p class="meta">Inicia sesión para contactar.</p>`
+        : (!yoPuedo && !esAdm) ? `<p class="meta" style="color:var(--gold-deep);font-weight:700;">⚠️ Verifica tu correo y teléfono para contactar.</p>`
+        : (!pVerif && !esAdm) ? `<p class="meta" style="color:var(--brick);font-weight:700;">🚫 Este cliente no está disponible.</p>`
+        : `<button class="btn" data-contact="${p.email}">Contactar</button>
+           <button class="btn ${esFav?'gold':'ghost'}" data-fav="${p.email}" style="margin-left:8px;">${esFav?'★ Guardado':'☆ Guardar'}</button>`}
+    </div>`;
+  }).join('') : '<p class="empty">No hay clientes buscando servicio con esos filtros.</p>';
+  return renderAyuda('clientes') + hero + fil + `<div id="listaProfesionales">${htmlLista}</div>`;
+}
+function wireClientes(){
+  document.querySelectorAll('[data-c]').forEach(p=>{ p.onclick = ()=>{ filtroCiudad = p.dataset.c; render(); }; });
+  document.querySelectorAll('[data-favtoggle]').forEach(p=>{ p.onclick = ()=>{ soloFavoritos = !soloFavoritos; render(); }; });
+  const r = document.getElementById('btnResetFiltros'); if(r) r.onclick = ()=>{ filtroCiudad=''; soloFavoritos=false; busquedaTexto=''; toast('Filtros reiniciados.', 'success'); render(); };
+  const ib = document.getElementById('buscarTexto');
+  if(ib){ let t=null; ib.oninput = ()=>{ busquedaTexto = ib.value; if(t) clearTimeout(t); t = setTimeout(()=>{ render(); }, 350); }; }
+  wireBotonesLista();
+}
+
+async function viewFavoritos(){
+  const users = await getUsers(); const me = users.find(u=>u.email===session.email);
+  const favs = (me && me.favoritos) || [];
+  if(!favs.length) return `${renderAyuda('favoritos')}<div class="card"><h2>⭐ Mis favoritos</h2><p class="empty">Aún no has guardado usuarios.</p></div>`;
+  const lista = users.filter(u=>favs.includes(u.email));
+  const esAdm = esAdmin(session); const yoPuedo = me ? puedeInteractuar(me) : false;
+  const html = lista.map(p=>{
+    const cals = p.calificaciones||[];
+    const prom = cals.length ? (cals.reduce((a,b)=>a+b.estrellas,0)/cals.length).toFixed(1) : null;
+    const esMi = p.email===session.email;
+    const pV = puedeInteractuar(p);
+    const puede = (esAdm||yoPuedo) && (esAdm||pV) && !esMi && estaActivo(p);
+    const badgeV = p.verificado ? '<span class="badge ok">Verificado ✓</span>' : '<span class="badge pending">No verificado</span>';
+    return `<div class="card"><div style="display:flex;gap:12px;align-items:flex-start;">${avatarHtml(p)}<div style="flex:1;"><p class="prof-name">${nombreMostrar(p)} ${badgeV} ${badgeEstado(p)}</p><p class="meta">${badgeTipo(p.tipo)} ${categoriasDe(p).length?' · '+categoriasDe(p).map(c=>(ICONOS[c]||'')+' '+c).join(' · '):''} · ${p.ciudad||''}</p></div></div><p style="margin-top:8px;">${starsHtml(prom, cals.length)}</p>
+    ${puede && p.verificado ? `<button class="btn" data-contact="${p.email}">Contactar</button><button class="btn gold" data-fav="${p.email}" style="margin-left:8px;">★ Quitar</button>` : `<p class="meta">${esMi?'Es tu perfil.':!p.verificado?'Usuario no verificado.':!estaActivo(p)?'Usuario desactivado (no contactable).':'No puedes contactar.'}</p>`}</div>`;
+  }).join('');
+  return `${renderAyuda('favoritos')}<div class="card"><h2>⭐ Mis favoritos (${lista.length})</h2></div>${html}`;
+}
+
+/* ---------- MIS TRABAJOS ---------- */
+async function viewMisTrabajos(){
+  const ts = (await getTrabajos()).filter(t=>t.cliente===session.email || t.profesional===session.email);
+  const activos = ts.filter(t=>t.estado!=='completado' && t.estado!=='cancelado');
+  const completados = ts.filter(t=>t.estado==='completado');
+  const users = await getUsers();
+  if(!ts.length) return `${renderAyuda('trabajos')}<div class="card"><h2>📋 Mis trabajos</h2><p class="empty">Aún no tienes trabajos. Contacta a alguien y cuando terminen el servicio, márcalo como realizado en el chat.</p></div>`;
+  const rT = (t)=>{
+    const oE = t.cliente===session.email ? t.profesional : t.cliente;
+    const otro = users.find(u=>u.email===oE);
+    const yaCal = (t.calificacionesHechas||[]).includes(session.email);
+    const cl = t.estado==='completado' ? 'completado' : t.estado==='cancelado' ? 'cancelado' : 'activo';
+    const tx = t.estado==='completado' ? '✅ Completado' : t.estado==='cancelado' ? '❌ Cancelado' : '🟡 En proceso';
+    let acc = '';
+    if(!yaCal){
+      acc = `<button class="btn gold btn-sm" data-calificar="${t.id}">⭐ Calificar a ${nombreMostrar(otro)}</button>`;
+    } else if(t.estado!=='completado'){
+      acc = `<p class="meta" style="color:var(--gold-deep);font-weight:700;">⏳ Esperando que ${nombreMostrar(otro)} te califique…</p>`;
+    }
+    return `<div class="card"><div style="display:flex;gap:12px;align-items:flex-start;">${avatarHtml(otro)}<div style="flex:1;"><p class="prof-name">${nombreMostrar(otro)}</p><p class="meta">${badgeTipo(otro?otro.tipo:'')} · ${t.fecha?new Date(t.fecha).toLocaleDateString():''}</p><p style="margin-top:6px;"><span class="estado-servicio ${cl}">${tx}</span></p></div></div>${acc}</div>`;
+  };
+  return `${renderAyuda('trabajos')}
+  <div class="card"><h2>🟡 Activos (${activos.length})</h2></div>
+  ${activos.length?activos.map(rT).join(''):'<p class="empty" style="padding-left:20px;">Sin trabajos activos.</p>'}
+  <div class="card" style="margin-top:20px;"><h2>✅ Completados (${completados.length})</h2></div>
+  ${completados.length?completados.map(rT).join(''):'<p class="empty" style="padding-left:20px;">Sin trabajos completados.</p>'}`;
+}
+function wireMisTrabajos(){
+  document.querySelectorAll('[data-calificar]').forEach(b=>{
+    b.onclick = ()=>{ calificandoTrabajoId = b.dataset.calificar; estrellasSel = 0; currentTab='calificar'; render(); };
+  });
+}
+
+/* ---------- VISTA DE CALIFICACIÓN ---------- */
+async function viewCalificar(){
+  const ts = await getTrabajos();
+  const t = ts.find(x=>x.id===calificandoTrabajoId);
+  if(!t) return `<div class="card"><p class="empty">Trabajo no encontrado.</p><button class="btn" id="btnVolverTrabajos">Volver a Mis trabajos</button></div>`;
+  const otroEmail = t.cliente===session.email ? t.profesional : t.cliente;
+  const users = await getUsers();
+  const otro = users.find(u=>u.email===otroEmail);
+  const soyCliente = t.cliente === session.email;
+  const yaCalifique = (t.calificacionesHechas||[]).includes(session.email);
+  if(yaCalifique){
+    return `${renderAyuda('calificar')}
+    <div class="card card-success" style="text-align:center;">
+      <h2>✅ Ya calificaste este trabajo</h2>
+      <p>Estás esperando que ${nombreMostrar(otro)} también te califique. Cuando lo haga, el trabajo pasará al historial.</p>
+      <button class="btn" id="btnVolverTrabajos">Ver Mis trabajos</button>
+    </div>`;
+  }
+  const titulo = soyCliente
+    ? `¿Cómo estuvo el trabajo de <b>${nombreMostrar(otro)}</b>?`
+    : `¿Cómo se portó <b>${nombreMostrar(otro)}</b> como cliente?`;
+  const sub = soyCliente
+    ? 'Tu calificación ayuda a otros clientes a elegir al mejor profesional.'
+    : 'Tu calificación ayuda a otros profesionales a saber con quién trabajar.';
+  return `${renderAyuda('calificar')}
+  <div class="card card-calificar" style="text-align:center;">
+    <div style="display:flex;justify-content:center;margin-bottom:8px;">${avatarHtml(otro, true)}</div>
+    <h2 style="font-size:1.35rem;">${titulo}</h2>
+    <p class="meta">${sub}</p>
+    <div class="starpicker-big" id="starpickerBig">
+      ${[1,2,3,4,5].map(n=>`<span data-n="${n}" class="${n<=estrellasSel?'sel':''}">★</span>`).join('')}
+    </div>
+    <p style="font-weight:700;font-size:1.05rem;" id="textoEstrellas">${estrellasSel ? ['','Muy malo','Malo','Regular','Bueno','Excelente'][estrellasSel] : 'Selecciona las estrellas'}</p>
+    <label>Comentario (opcional)</label>
+    <textarea id="comentarioCal" placeholder="Cuéntanos cómo fue tu experiencia…"></textarea>
+    <button class="btn gold big" id="btnEnviarCalificacion" ${estrellasSel<1?'disabled':''}>⭐ Enviar calificación</button>
+    <button class="btn ghost" id="btnCancelarCalificacion">Volver más tarde</button>
+  </div>`;
+}
+function wireCalificar(){
+  const pk = document.getElementById('starpickerBig');
+  if(pk){
+    pk.querySelectorAll('span').forEach(s=>{
+      s.onclick = ()=>{
+        estrellasSel = parseInt(s.dataset.n);
+        pk.querySelectorAll('span').forEach(x=>{ x.classList.toggle('sel', parseInt(x.dataset.n) <= estrellasSel); });
+        const txt = document.getElementById('textoEstrellas');
+        if(txt) txt.textContent = ['','Muy malo','Malo','Regular','Bueno','Excelente'][estrellasSel];
+        const btn = document.getElementById('btnEnviarCalificacion');
+        if(btn) btn.disabled = estrellasSel < 1;
+      };
+    });
+  }
+  const btnC = document.getElementById('btnCancelarCalificacion');
+  if(btnC) btnC.onclick = ()=>{ calificandoTrabajoId = null; estrellasSel = 0; currentTab='trabajos'; render(); };
+  const btnV = document.getElementById('btnVolverTrabajos');
+  if(btnV) btnV.onclick = ()=>{ calificandoTrabajoId = null; estrellasSel = 0; currentTab='trabajos'; render(); };
+  const btnE = document.getElementById('btnEnviarCalificacion');
+  if(btnE) btnE.onclick = async ()=>{
+    if(estrellasSel < 1){ toast('Selecciona al menos 1 estrella.', 'error'); return; }
+    const com = document.getElementById('comentarioCal').value.trim();
+    btnE.disabled = true; btnE.textContent = 'Enviando…';
+    const res = await enviarCalificacion(calificandoTrabajoId, estrellasSel, com);
+    calificandoTrabajoId = null; estrellasSel = 0;
+    toast(res.mensaje, res.ok ? 'success' : 'error');
+    currentTab = 'trabajos';
+    render();
+  };
+}
+
+async function enviarCalificacion(tid, n, com){
+  try{
+    const ts = await getTrabajos();
+    const t = ts.find(x=>x.id===tid);
+    if(!t) return { ok:false, mensaje:'Trabajo no encontrado.' };
+    const otro = t.cliente===session.email ? t.profesional : t.cliente;
+    const us = await getUsersFresh();
+    const me = us.find(x=>x.email===session.email);
+    const ot = us.find(u=>u.email===otro);
+    if(ot){
+      ot.calificaciones = ot.calificaciones||[];
+      ot.calificaciones.push({estrellas:n, comentario:com, de:session.email, nombreDe: me ? nombreMostrar(me) : 'Usuario', fecha: Date.now(), trabajoId: tid});
+      if(ot.tipo==='cliente' && ot.calificaciones.length >= 3){
+        const p = ot.calificaciones.reduce((a,b)=>a+b.estrellas,0)/ot.calificaciones.length;
+        if(p < 4){ ot.activo = false; ot.desactivadoPor = 'Calificación baja automática'; ot.fechaDesactivacion = Date.now(); }
+      }
+      await saveUsers(us);
+      await syncDirectorioPublico(otro);
+    }
+    t.calificacionesHechas = t.calificacionesHechas || [];
+    if(!t.calificacionesHechas.includes(session.email)) t.calificacionesHechas.push(session.email);
+
+    let mensajeFinal = '¡Gracias por tu calificación!';
+    if(t.calificacionesHechas.length >= 2){
+      t.estado = 'completado';
+      t.fechaCompletado = Date.now();
+      try{ await avanzarHilo(convId(t.cliente, t.profesional)); }catch(e){}
+      mensajeFinal = '🎉 ¡Trabajo completado! Ambos se calificaron. El chat quedó listo para un nuevo servicio.';
+    } else {
+      mensajeFinal = '✅ Calificación enviada. Esperando que la otra parte califique para cerrar el trabajo.';
+    }
+    await saveTrabajos(ts);
+    return { ok:true, mensaje: mensajeFinal };
+  }catch(e){
+    console.error('enviarCalificacion:', e);
+    return { ok:false, mensaje:'Error al calificar: ' + (e.message||e) };
+  }
+}
+
+/* ---------- MENSAJES ---------- */
+function abrirSoporte(){ chatWith = adminEmailActual(); currentTab = 'mensajes'; render(); }
+function getChatUser(users, email){ const f = users.find(x=>x.email===email); if(f) return f; if(esEmailAdmin2(email)) return {email, nombre: nombreSoporte(), tipo:'soporte', verificado:true, activo:true}; return null; }
+
+async function viewMensajes(){
+  const users = await getUsersFresh();
+  const me = users.find(u=>u.email===session.email);
+  const esAdm = esAdmin(session);
+  const esDesactivado = usuarioActual && usuarioActual.activo === false;
+  const ms = await getMensajes();
+  const convs = [...new Set(ms.filter(m=>m.de===session.email || m.para===session.email).map(m=> m.de===session.email ? m.para : m.de))];
+  if(chatWith && !convs.includes(chatWith)) convs.push(chatWith);
+  convs.sort((a,b)=>{
+    const na = ms.filter(m=>m.de===a && m.para===session.email && !m.leido).length;
+    const nb = ms.filter(m=>m.de===b && m.para===session.email && !m.leido).length;
+    return nb - na;
+  });
+  const lC = convs.length ? convs.map(email=>{
+    const u = getChatUser(users, email);
+    const nl = ms.filter(m=>m.de===email && m.para===session.email && !m.leido).length;
+    const esS = esEmailAdmin2(email);
+    const uInactivo = u && u.tipo !== 'soporte' && u.activo === false;
+    return `<span class="pill ${chatWith===email?'on':''} ${esS?'soporte':''}" data-conv="${email}" style="${uInactivo?'opacity:.7;':''}">${esS?'🆘 ':''}${u?nombreMostrar(u):'Usuario'} ${uInactivo?'🔒':''} ${nl?'<b style="color:var(--brick)">('+nl+')</b>':''}</span>`;
+  }).join('') : '<p class="empty">Aún no tienes conversaciones. Usa el botón 🆘 para contactar a Soporte.</p>';
+  const yoP = me ? puedeInteractuar(me) : false;
+  let bV = '';
+  if(me && !estaVerificado(me) && !esAdm && !esDesactivado){ bV = `<div class="banner-warn"><span class="ico">⚠️</span><div>Verifica correo y teléfono para escribir a otros usuarios. <a href="#" id="linkVerif2" style="font-weight:700;text-decoration:underline;">Ir a verificación</a><br>🆘 <b>Excepción:</b> sí puedes escribir a Soporte.</div></div>`; }
+  if(esDesactivado){ bV = `<div class="banner-warn"><span class="ico">🔒</span><div>Tu cuenta está desactivada. Solo puedes escribir a <b>Soporte</b>.</div></div>`; }
+  let pc = '';
+  if(chatWith){
+    const u = getChatUser(users, chatWith);
+    const esS = esEmailAdmin2(chatWith);
+    const uInactivo = u && u.tipo !== 'soporte' && u.activo === false;
+    const par = convId(session.email, chatWith);
+    const hi = await obtenerHiloActual(par);
+    const todos = ms.filter(m=>convId(m.de,m.para)===par);
+    const act = todos.filter(m=>(m.hilo||1)===hi).sort((a,b)=>a.fecha-b.fecha);
+    const nums = [...new Set(todos.filter(m=>(m.hilo||1)<hi).map(m=>m.hilo||1))].sort((a,b)=>a-b);
+    const hH = nums.length ? `<details style="margin:12px 0;"><summary style="cursor:pointer;font-weight:700;">📜 Historial (${nums.length})</summary>${nums.map(n=>{ const mn = todos.filter(m=>(m.hilo||1)===n).sort((a,b)=>a.fecha-b.fecha); return `<div style="margin:10px 0;padding:10px;background:var(--paper);border-radius:8px;border:1px solid var(--line);"><p class="meta" style="font-weight:700;">Conversación #${n}</p>${mn.map(m=>`<div class="msg ${m.de===session.email?'mine':'theirs'}">${m.texto}</div>`).join('')}</div>`; }).join('')}</details>` : '';
+    let plant = esS ? PLANTILLAS_SOPORTE : (session.tipo === 'profesional' ? PLANTILLAS_PROFESIONAL : PLANTILLAS_CLIENTE);
+    const pH = act.length===0 ? `<div class="quick-tpl">${plant.map(p=>`<button class="${esS?'soporte':''}" data-tpl="${p.replace(/"/g,'&quot;')}">${p}</button>`).join('')}</div>` : '';
+    const esMi = chatWith === session.email;
+    let puedo = false;
+    let razonNo = '';
+    if(esAdm) puedo = !esMi;
+    else if(esS) puedo = !esMi && !!session;
+    else if(esDesactivado){ puedo = false; razonNo = 'Tu cuenta está desactivada. Solo puedes escribir a Soporte.'; }
+    else if(uInactivo){ puedo = false; razonNo = 'El otro usuario está desactivado. No puedes enviar mensajes.'; }
+    else puedo = yoP && u && puedeInteractuar(u) && !esMi;
+
+    const trabajosTodos = await getTrabajos();
+    const trabajosPar = trabajosTodos.filter(t=>
+      (t.cliente===session.email && t.profesional===chatWith) ||
+      (t.profesional===session.email && t.cliente===chatWith)
+    );
+    const tActivo = trabajosPar.find(t=>t.estado !== 'completado' && t.estado !== 'cancelado');
+    const soyCliente = session.tipo === 'cliente';
+    let botonTrabajo = '';
+    if(!esS && !esAdm && !esDesactivado && !uInactivo && tActivo){
+      const yaCal = (tActivo.calificacionesHechas||[]).includes(session.email);
+      if(!yaCal){
+        if(soyCliente) botonTrabajo = `<button class="btn gold" id="btnIrCalificarTrabajo" data-tid="${tActivo.id}" style="margin-top:8px;">⭐ El trabajo ya está listo — Calificar a ${nombreMostrar(u)}</button>`;
+        else botonTrabajo = `<button class="btn gold" id="btnIrCalificarTrabajo" data-tid="${tActivo.id}" style="margin-top:8px;">✅ Validar y calificar a ${nombreMostrar(u)}</button>`;
+      } else {
+        botonTrabajo = `<p class="meta" style="color:var(--gold-deep);font-weight:700;margin-top:8px;">⏳ Ya calificaste. Esperando que ${nombreMostrar(u)} te califique…</p>`;
+      }
+    } else if(!esS && !esAdm && !esDesactivado && !uInactivo && soyCliente && !tActivo && u && u.tipo === 'profesional'){
+      botonTrabajo = `<button class="btn secondary" id="btnMarcarTrabajo" style="margin-top:8px;">🛠️ Marcar trabajo como realizado</button>`;
+    }
+
+    pc = `<div class="card">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">
+        <div>${avatarHtml(u, true)}</div>
+        <h3 style="margin:0;">${u?nombreMostrar(u):'Usuario'}</h3>
+        ${u?badgeTipo(u.tipo):''}
+        ${u && u.tipo !== 'soporte' ? badgeEstado(u) : ''}
+      </div>
+      ${esS ? '<p class="meta" style="color:var(--purple-deep);font-weight:700;">Estás hablando con Soporte.</p>' : (uInactivo ? '<p class="meta" style="color:var(--brick);font-weight:700;">🔒 Este usuario está desactivado.</p>' : '<p class="meta" style="color:var(--brick);">⚠️ Acuerdos fuera del chat no son válidos.</p>')}
+      <div id="hilo" style="max-height:380px;overflow-y:auto;margin:10px 0;">
+        ${act.length ? act.map(m=>`<div class="msg ${m.de===session.email?'mine':'theirs'} ${esS?'soporte':''}">${m.texto}</div>`).join('') : '<p class="empty">Sé el primero en escribir.</p>'}
+      </div>
+      ${pH}
+      ${puedo ? `<div class="msg-input-wrap"><input id="nuevoMsg" placeholder="Escribe un mensaje..." enterkeyhint="send" autocomplete="off"><button class="btn ${esS?'purple':''}" id="btnEnviar" style="margin-top:0;">Enviar</button></div>
+      <p class="meta" style="margin-top:6px;font-size:.78rem;">💡 Presiona <b>Enter</b> para enviar.</p>`
+      : `<p class="meta" style="color:var(--gold-deep);font-weight:700;margin-top:8px;">🚫 ${razonNo || 'No puedes enviar mensajes en esta conversación.'}</p>`}
+      ${botonTrabajo}
+      ${hH}
+      ${!esS && !esDesactivado && !uInactivo ? '<div style="margin-top:12px;"><button class="btn warn" id="btnReportar">🚩 Reportar un problema</button></div>' : ''}
+      ${reportando ? `<div class="report-box" style="background:#fbeceb;border:1px solid #eec2be;border-radius:8px;padding:12px;margin-top:10px;"><label>Cuéntanos qué pasó</label><textarea id="motivoReporte"></textarea><button class="btn warn" id="btnEnviarReporte">Enviar reporte</button><button class="btn ghost" id="btnCancelarReporte">Cancelar</button></div>` : ''}
+    </div>`;
+  }
+  return `${renderAyuda(esAdm?'admin':'mensajes')}${bV}
+  <div class="card"><h3>Tus conversaciones ${esAdm?'(vista de Soporte)':''}</h3>${esAdm ? '<p class="meta">Como Soporte ves todas las conversaciones contigo.</p>' : ''}${lC}</div>${pc}`;
+}
+async function actualizarHilo(){
+  if(currentTab!=='mensajes' || !chatWith || !session) return;
+  const hE = document.getElementById('hilo');
+  if(!hE) return;
+  const par = convId(session.email, chatWith);
+  const [ms, hi] = await Promise.all([getMensajes(), obtenerHiloActual(par)]);
+  const act = ms.filter(m=>convId(m.de,m.para)===par && (m.hilo||1)===hi).sort((a,b)=>a.fecha-b.fecha);
+  hE.innerHTML = act.length ? act.map(m=>`<div class="msg ${m.de===session.email?'mine':'theirs'} ${esEmailAdmin2(chatWith)?'soporte':''}">${m.texto}</div>`).join('') : '<p class="empty">Sé el primero en escribir.</p>';
+  hE.scrollTop = hE.scrollHeight;
+  await marcarMensajesLeidos(chatWith, session.email);
+  actualizarCampana();
+}
+let chatUnsubs = [];
+function detenerListenerChat(){
+  chatUnsubs.forEach(u => { try{ u(); }catch(e){} });
+  chatUnsubs = [];
+  if(chatPollTimer){ clearInterval(chatPollTimer); chatPollTimer = null; }
+}
+function iniciarListenerChat(){
+  detenerListenerChat();
+  if(!FIREBASE_LISTO || !session || !chatWith) return;
+  try{
+    const unsub1 = db.collection('mensajes').where('de','==',session.email).onSnapshot(
+      () => { if(currentTab==='mensajes') actualizarHilo(); },
+      (err) => console.warn('chat listener (de):', err.message)
+    );
+    const unsub2 = db.collection('mensajes').where('para','==',session.email).onSnapshot(
+      () => { if(currentTab==='mensajes') actualizarHilo(); },
+      (err) => console.warn('chat listener (para):', err.message)
+    );
+    chatUnsubs = [unsub1, unsub2];
+  }catch(e){ console.error('iniciarListenerChat:', e); }
+}
+
+function wireMensajes(){
+  if(chatPollTimer){ clearInterval(chatPollTimer); chatPollTimer = null; }
+  const lv = document.getElementById('linkVerif2'); if(lv) lv.onclick = (e)=>{ e.preventDefault(); currentTab='verificacion'; render(); };
+  document.querySelectorAll('[data-conv]').forEach(p=>{ p.onclick = async ()=>{ chatWith = p.dataset.conv; await marcarMensajesLeidos(chatWith, session.email); reportando=false; render(); }; });
+  document.querySelectorAll('[data-tpl]').forEach(b=>{ b.onclick = ()=>{ const i = document.getElementById('nuevoMsg'); if(i){ i.value = b.dataset.tpl; i.focus(); } }; });
+  const enviar = async ()=>{
+    const input = document.getElementById('nuevoMsg');
+    if(!input) return;
+    const texto = input.value.trim();
+    if(!texto) return;
+    const par = convId(session.email, chatWith);
+    const hi = await obtenerHiloActual(par);
+    await addMensaje({de:session.email, para:chatWith, texto, fecha:Date.now(), hilo:hi, leido:false});
+    input.value = '';
+    await render();
+    const ni = document.getElementById('nuevoMsg');
+    if(ni){ ni.focus(); ni.selectionStart = ni.selectionEnd = ni.value.length; const hE = document.getElementById('hilo'); if(hE) hE.scrollTop = hE.scrollHeight; }
+  };
+  const bE = document.getElementById('btnEnviar'); if(bE) bE.onclick = enviar;
+  const iM = document.getElementById('nuevoMsg');
+  if(iM){ iM.onkeydown = (e)=>{ if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); enviar(); } }; setTimeout(()=>{ iM.focus(); const hE = document.getElementById('hilo'); if(hE) hE.scrollTop = hE.scrollHeight; }, 100); }
+
+  const bT = document.getElementById('btnMarcarTrabajo');
+  if(bT){
+    bT.onclick = async ()=>{
+      bT.disabled = true; bT.textContent = 'Creando trabajo…';
+      const ts = await getTrabajos();
+      const ee = ts.filter(t=>t.cliente===session.email && t.profesional===chatWith);
+      const p = ee.find(t=>t.estado!=='completado' && t.estado!=='cancelado');
+      if(p){
+        calificandoTrabajoId = p.id; estrellasSel = 0;
+        currentTab = 'calificar'; render(); return;
+      }
+      if(ee.filter(t=>t.estado==='completado').length >= 3){ toast('Máximo de trabajos entre la misma pareja.', 'error'); bT.disabled=false; bT.textContent='🛠️ Marcar trabajo como realizado'; return; }
+      const nid = 't'+Date.now();
+      ts.push({id:nid, cliente: session.email, profesional: chatWith, estado:'confirmado', calificacionesHechas:[], fecha: Date.now()});
+      await saveTrabajos(ts);
+      calificandoTrabajoId = nid; estrellasSel = 0;
+      currentTab = 'calificar';
+      toast('¡Trabajo registrado! Califica a ' + chatWith, 'success');
+      render();
+    };
+  }
+
+  const bIC = document.getElementById('btnIrCalificarTrabajo');
+  if(bIC){ bIC.onclick = ()=>{ calificandoTrabajoId = bIC.dataset.tid; estrellasSel = 0; currentTab='calificar'; render(); }; }
+
+  const bR = document.getElementById('btnReportar'); if(bR) bR.onclick = ()=>{ reportando = true; render(); };
+  const bCR = document.getElementById('btnCancelarReporte'); if(bCR) bCR.onclick = ()=>{ reportando = false; render(); };
+  const bER = document.getElementById('btnEnviarReporte');
+  if(bER){ bER.onclick = async ()=>{ const m = document.getElementById('motivoReporte').value.trim(); if(!m){ toast('Describe el problema.', 'error'); return; } const rs = await getReportes(); rs.push({id:'r'+Date.now(), de:session.email, contra:chatWith, motivo:m, fecha:Date.now(), estado:'pendiente'}); await saveReportes(rs); reportando = false; toast('Reporte enviado.', 'success'); render(); }; }
+  if(chatWith){
+    if(FIREBASE_LISTO){ iniciarListenerChat(); }
+    else { chatPollTimer = setInterval(actualizarHilo, 4000); }
+    marcarMensajesLeidos(chatWith, session.email).then(()=>actualizarCampana());
+  }
+}
+
+/* ---------- PERFIL ---------- */
+async function viewPerfil(){
+  const users = await getUsers();
+  const me = users.find(u=>u.email===session.email);
+  if(!me) return '<p class="empty">Perfil no encontrado.</p>';
+  const esAdm = esAdmin(session);
+  let bV = '';
+  if(me.notificacionVerificacion && !me.notificacionVerificacion.visto){
+    const n = me.notificacionVerificacion;
+    if(n.estado === 'aprobado'){
+      bV += `<div class="card card-success" style="margin-bottom:14px;">
+        <p style="font-weight:700;font-size:1.1rem;">🎉 ¡Felicidades, ${nombreMostrar(me)}!</p>
+        <p>Tu cuenta ha sido <b>aprobada y verificada</b>.</p>
+        <button class="btn gold btn-sm" data-marcar-visto="1">✓ Entendido</button>
+      </div>`;
+    } else if(n.estado === 'rechazado'){
+      bV += `<div class="card card-danger" style="margin-bottom:14px;">
+        <p style="font-weight:700;font-size:1.1rem;">⚠️ Tu verificación no fue aprobada</p>
+        <p><b>Motivo:</b> ${n.motivo || '(no especificado)'}</p>
+        <button class="btn warn btn-sm" data-marcar-visto="1">Entendido</button>
+      </div>`;
+    }
+  }
+  if(!esAdm && !estaVerificado(me)){
+    bV += `<div class="banner-warn"><span class="ico">⚠️</span><div>Verifica correo y teléfono para contactar. <a href="#" id="linkVerif" style="font-weight:700;text-decoration:underline;">Ir a verificación</a> · <a href="#" id="linkSoportePerfil" style="font-weight:700;text-decoration:underline;">Contactar Soporte</a></div></div>`;
+  }
+  if(!esAdm && me.foto && me.revFoto === 'rechazado' && me.motivoRechazo_revFoto){
+    bV += `<div class="card card-danger">
+      <p style="font-weight:700;">📋 Foto de perfil rechazada</p>
+      <p><b>Motivo:</b> ${me.motivoRechazo_revFoto}</p>
+    </div>`;
+  }
+  let panelFoto = '';
+  if(!esAdm){
+    const avisoFoto = (me.revFoto && me.revFoto !== 'aprobado') ? `<p class="meta" style="color:var(--gold-deep);font-weight:700;">⏳ Foto pendiente de revisión.</p>` : (me.revFoto === 'aprobado' ? `<p class="meta" style="color:var(--forest);font-weight:700;">✓ Foto aprobada.</p>` : '');
+    panelFoto = `<div class="card">
+      <h3>📸 Mi foto de perfil</h3>
+      <p class="meta">Cambia tu foto cuando quieras. Será revisada por el admin.</p>
+      ${avisoFoto}
+      <label>Cambiar foto de perfil</label>
+      <input id="nuevaFotoPerfil" type="file" accept="image/*">
+      <button class="btn secondary btn-sm" id="btnCambiarFoto">Subir nueva foto</button>
+      <p class="meta" style="margin-top:10px;">ℹ️ Para cambiar tu <b>nombre, teléfono, cédula, correo</b>, contacta a Soporte (🆘).</p>
+    </div>`;
+  }
+  let panelBusco = '';
+  if(me.tipo === 'cliente'){
+    panelBusco = `<div class="card">
+      <h3>🔍 Busco un servicio ahora</h3>
+      <p class="meta">Actívalo si buscas un profesional. Solo los clientes activados aquí aparecen a los profesionales.</p>
+      <label style="display:flex;align-items:center;gap:10px;font-weight:600;">
+        <span class="switch"><input type="checkbox" id="chkBuscoServicio" ${me.buscandoServicio?'checked':''}><span class="slider"></span></span>
+        ${me.buscandoServicio ? 'Buscando servicio ahora' : 'No estoy buscando'}
+      </label>
+      ${me.buscandoServicio ? `<label style="margin-top:12px;">Describe qué servicio necesitas</label><textarea id="solicitudDesc" placeholder="Ej: Necesito arreglar una gotera en el techo, urgente.">${me.solicitudDesc||''}</textarea><button class="btn secondary btn-sm" id="btnGuardarSolicitud">Guardar descripción</button>` : ''}
+    </div>`;
+  }
+  const bD = `<div class="card"><h3>Disponibilidad</h3><p class="meta">Activa cuando estés disponible para recibir contactos hoy.</p><label style="display:flex;align-items:center;gap:10px;font-weight:600;"><span class="switch"><input type="checkbox" id="chkDisponible" ${me.disponible?'checked':''}><span class="slider"></span></span>${me.disponible?'Disponible ahora':'No disponible'}</label></div>`;
+  let eP = '';
+  if(me.tipo==='profesional'){
+    const cals = me.calificaciones||[];
+    const prom = cals.length ? (cals.reduce((a,b)=>a+b.estrellas,0)/cals.length).toFixed(1) : null;
+    eP = `<div class="card"><h3>Tus calificaciones</h3>${cals.length ? `<p>${starsHtml(prom, cals.length)}</p>` + cals.map(c=>`<p style="border-top:1px solid var(--line);padding-top:8px;">★ ${c.estrellas} — "${c.comentario||''}" <span class="meta">de ${c.nombreDe||c.de}</span></p>`).join('') : '<p class="empty">Aún no tienes.</p>'}</div>
+    <div class="card"><h3>Portafolio</h3><p class="meta">Fotos de trabajos reales (máx. 6).</p>
+    ${(me.portafolio||[]).length ? `<div class="portafolio-fotos">${me.portafolio.map((f,i)=>`<div style="position:relative;"><img src="${f}"><button data-quitar-foto="${i}" style="position:absolute;top:-6px;right:-6px;background:var(--brick);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:.7rem;cursor:pointer;line-height:1;">✕</button></div>`).join('')}</div>` : '<p class="empty">Sin fotos.</p>'}
+    ${(me.portafolio||[]).length < 6 ? `<label style="margin-top:12px;">Agregar foto</label><input id="nuevaFotoPortafolio" type="file" accept="image/*"><button class="btn secondary btn-sm" id="btnSubirPortafolio">Subir foto</button>` : '<p class="meta">Máximo alcanzado.</p>'}</div>`;
+  }
+  return `${renderAyuda('perfil')}${bV}
+  <div class="card"><div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;">
+    <div style="text-align:center;">${avatarLgHtml(me)}</div>
+    <div style="flex:1;min-width:220px;">
+      <h2 style="margin:0;">${nombreMostrar(me)} ${me.verificado?'<span class="badge ok">Verificado ✓</span>':'<span class="badge pending">No verificado</span>'} ${badgeEstado(me)}</h2>
+      <p style="margin:6px 0;">${badgeTipo(me.tipo)}</p>
+      <p class="meta">${me.ciudad}</p>
+      <p class="meta" style="margin-top:8px;"><b>Verificaciones:</b></p>
+      <p class="meta">📱 Teléfono ${checkIcon(me.telVerificado)} &nbsp; 📧 Correo ${checkIcon(me.emailVerificado)} &nbsp; 🪪 Cédula ${checkIcon(me.cedulaVerificada)}</p>
+      ${me.tipo==='profesional' ? `<p class="meta">Categorías: ${categoriasDe(me).map(c=>(ICONOS[c]||'')+' '+c).join(' · ')}</p><p>${me.desc||''}</p>` : ''}
+    </div>
+  </div></div>
+  ${panelBusco}
+  ${panelFoto}
+  ${bD}${eP}`;
+}
+function wirePerfil(){
+  document.querySelectorAll('[data-marcar-visto]').forEach(b=>{
+    b.onclick = async ()=>{
+      const us = await getUsersFresh();
+      const me = us.find(x=>x.email===session.email);
+      if(me && me.notificacionVerificacion){ me.notificacionVerificacion.visto = true; await saveUsers(us); render(); }
+    };
+  });
+  const lv = document.getElementById('linkVerif'); if(lv) lv.onclick = (e)=>{ e.preventDefault(); currentTab='verificacion'; render(); };
+  const ls = document.getElementById('linkSoportePerfil'); if(ls) ls.onclick = (e)=>{ e.preventDefault(); abrirSoporte(); };
+
+  const chkBusco = document.getElementById('chkBuscoServicio');
+  if(chkBusco) chkBusco.onchange = async ()=>{
+    const us = await getUsersFresh();
+    const me = us.find(x=>x.email===session.email);
+    if(me){
+      me.buscandoServicio = chkBusco.checked;
+      me.buscandoDesde = chkBusco.checked ? Date.now() : null;
+      if(!chkBusco.checked) me.solicitudDesc = '';
+      await saveUsers(us);
+      await syncDirectorioPublico(session.email);
+      toast(chkBusco.checked ? '✅ Aparecerás a los profesionales.' : 'Desactivado.', 'success');
+      render();
+    }
+  };
+  const btnGuardarSolicitud = document.getElementById('btnGuardarSolicitud');
+  if(btnGuardarSolicitud) btnGuardarSolicitud.onclick = async ()=>{
+    const us = await getUsersFresh();
+    const me = us.find(x=>x.email===session.email);
+    const txt = document.getElementById('solicitudDesc').value.trim();
+    if(me){ me.solicitudDesc = txt; await saveUsers(us); toast('Descripción guardada.', 'success'); render(); }
+  };
+  const btnCambiarFoto = document.getElementById('btnCambiarFoto');
+  if(btnCambiarFoto){
+    btnCambiarFoto.onclick = async ()=>{
+      const a = document.getElementById('nuevaFotoPerfil').files[0];
+      if(!a){ toast('Selecciona una foto.', 'error'); return; }
+      btnCambiarFoto.disabled = true; btnCambiarFoto.textContent = 'Analizando...';
+      const det = await detectarImagenIA(a);
+      if(det.esIA){ toast('❌ No se permite IA. ' + det.razon, 'error'); btnCambiarFoto.disabled = false; btnCambiarFoto.textContent = 'Subir nueva foto'; return; }
+      btnCambiarFoto.textContent = 'Subiendo...';
+      const c = await subirImagen(a, 'perfil/' + safeId(session.email), 500, 0.78);
+      const us = await getUsersFresh(); const me = us.find(u=>u.email===session.email);
+      if(me){ me.foto = c; me.revFoto = 'pendiente'; me.verificado = false; await saveUsers(us); await syncDirectorioPublico(session.email); try{ await registrarMovimiento(session.email, `📸 Foto de perfil actualizada, pendiente de revisión.`); }catch(e){} toast('Foto actualizada, pendiente de aprobación.', 'success'); }
+      render();
+    };
+  }
+  const ch = document.getElementById('chkDisponible');
+  if(ch) ch.onchange = async ()=>{ const us = await getUsersFresh(); const me = us.find(u=>u.email===session.email); if(me){ me.disponible = ch.checked; await saveUsers(us); await syncDirectorioPublico(session.email); toast(ch.checked?'Disponible.':'No disponible.', 'success'); render(); } };
+  const bsp = document.getElementById('btnSubirPortafolio');
+  if(bsp){
+    bsp.onclick = async ()=>{
+      const a = document.getElementById('nuevaFotoPortafolio').files[0];
+      if(!a){ toast('Selecciona una foto.', 'error'); return; }
+      bsp.disabled = true; bsp.textContent = 'Analizando...';
+      const det = await detectarImagenIA(a);
+      if(det.esIA){ toast('❌ No se permite IA. ' + det.razon, 'error'); bsp.disabled = false; bsp.textContent = 'Subir foto'; return; }
+      bsp.textContent = 'Subiendo...';
+      const c = await subirImagen(a, 'portafolio/' + safeId(session.email), 700, 0.7);
+      const us = await getUsersFresh(); const me = us.find(u=>u.email===session.email);
+      if(me){ me.portafolio = me.portafolio||[]; me.portafolio.push(c); await saveUsers(us); toast('Foto agregada al portafolio.', 'success'); }
+      render();
+    };
+  }
+  document.querySelectorAll('[data-quitar-foto]').forEach(b=>{ b.onclick = async ()=>{ const us = await getUsersFresh(); const me = us.find(u=>u.email===session.email); if(me && me.portafolio){ me.portafolio.splice(parseInt(b.dataset.quitarFoto), 1); await saveUsers(us); render(); } }; });
+}
+
+/* ---------- ADMIN ---------- */
+async function viewAdmin(){
+  const usersOriginales = await getUsersFresh();
+  const users = usersOriginales.map(u => ({...u}));
+  if(FIREBASE_LISTO){ const ps = await getPrivadoTodos(); const map = {}; ps.forEach(p=> map[p.email]=p); users.forEach(u=>{ const pr = map[u.email]; if(pr){ u.cedula = pr.cedula; u.docImagen = pr.docImagen; u.cedulaImagen = pr.cedulaImagen; } }); }
+  const todosProfs = users.filter(u=>u.tipo==='profesional' && !esUsuarioAdmin(u));
+  const todosClis  = users.filter(u=>u.tipo==='cliente'     && !esUsuarioAdmin(u));
+  const dBs = (u, c) => { const v = u[c]||'pendiente'; return `<span class="admin-decision"><button class="decision-btn ok ${v==='aprobado'?'active':''}" data-dec="${c}" data-em="${u.email}" data-val="aprobado" title="Aprobar">✓</button><button class="decision-btn no ${v==='rechazado'?'active':''}" data-dec="${c}" data-em="${u.email}" data-val="rechazado" title="Rechazar">✗</button></span>`; };
+  const bU = (u, esP) => {
+    const editando = adminEditandoEmail === u.email;
+    return `<div class="card" style="${u.activo===false ? 'opacity:.75;border-left:4px solid var(--brick);' : 'border-left:4px solid '+(u.verificado?'var(--forest)':'var(--gold)')+';'}">
+    <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;">${avatarHtml(u)}<div style="flex:1;min-width:180px;">
+      <p class="prof-name">${nombreMostrar(u)} ${u.verificado?'<span class="badge ok">Verificado ✓</span>':'<span class="badge pending">No verificado</span>'} ${badgeEstado(u)}</p>
+      <p class="meta">${esP ? categoriasDe(u).map(c=>(ICONOS[c]||'')+' '+c).join(' · ')+' · ' : ''}${u.ciudad} · Tel: ${u.tel} ${checkIcon(u.telVerificado)}</p>
+      <p class="meta">Cédula: ${u.cedula||'(no)'} ${checkIcon(u.cedulaVerificada)} · Email: ${u.email} ${checkIcon(u.emailVerificado)}</p>
+      ${u.activo===false && u.desactivadoPor ? `<p class="meta" style="color:var(--brick);font-weight:700;">Motivo: ${u.desactivadoPor}</p>`:''}
+    </div></div>
+    <div class="row" style="margin-top:10px;align-items:flex-start;">
+      ${u.foto ? `<div><p class="meta"><b>Foto perfil</b> ${dBs(u,'revFoto')}</p><img src="${u.foto}" style="max-width:120px;border-radius:8px;border:2px solid var(--gold);"></div>` : ''}
+      ${u.cedulaImagen ? `<div><p class="meta"><b>Foto cédula</b> ${dBs(u,'revCedula')}</p><img src="${u.cedulaImagen}" style="max-width:180px;border-radius:6px;border:1px solid var(--line);"></div>` : ''}
+      ${u.docImagen ? `<div><p class="meta"><b>Documento</b> ${dBs(u,'revDoc')}</p><img src="${u.docImagen}" style="max-width:140px;border-radius:6px;border:1px solid var(--line);"></div>` : ''}
+    </div>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+      ${u.activo===false ? `<button class="btn gold btn-sm" data-activar="${u.email}">✅ Reactivar</button>` : `<button class="btn warn btn-sm" data-desactivar="${u.email}">🚫 Desactivar</button>`}
+      <button class="btn secondary btn-sm" data-editar-usuario="${u.email}">✏️ Editar datos</button>
+      <button class="btn purple btn-sm" data-chat-user="${u.email}">💬 Escribir</button>
+      <button class="btn warn btn-sm" data-eliminar-usuario="${u.email}">🗑️ Eliminar</button>
+      ${!u.verificado ? bloqueChecklist(u) : ''}
+    </div>
+    ${editando ? `
+      <div class="admin-edit-panel">
+        <h4>✏️ Editar datos de ${nombreMostrar(u)}</h4>
+        <label>Nombre completo</label><input id="admNombre" value="${(u.nombre||'').replace(/"/g,'&quot;')}">
+        <label>Teléfono</label><input id="admTel" value="${(u.tel||'').replace(/"/g,'&quot;')}">
+        <label>Cédula</label><input id="admCedula" value="${(u.cedula||'').replace(/"/g,'&quot;')}">
+        <label>Correo electrónico</label><input id="admEmail" type="email" value="${(u.email||'').replace(/"/g,'&quot;')}">
+        <label>Cambiar foto de perfil (opcional)</label><input id="admFoto" type="file" accept="image/*">
+        <label>Cambiar foto de cédula (opcional)</label><input id="admCedulaImg" type="file" accept="image/*">
+        <label>Cambiar documento adicional (opcional)</label><input id="admDocImg" type="file" accept="image/*">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+          <button class="btn" data-guardar-edit="${u.email}">💾 Guardar cambios</button>
+          <button class="btn ghost" data-cancelar-edit="1">Cancelar</button>
+        </div>
+      </div>
+    ` : ''}
+  </div>`;
+  };
+  const filtrar = (arr) => {
+    if(adminFiltroVerif === 'sin-verificar') return arr.filter(u => !u.verificado);
+    if(adminFiltroVerif === 'verificados') return arr.filter(u => u.verificado);
+    if(adminFiltroVerif === 'desactivados') return arr.filter(u => u.activo === false);
+    return arr;
+  };
+  const profsFiltrados = filtrar(todosProfs);
+  const clisFiltrados = filtrar(todosClis);
+  const reportes = await getReportes();
+  const bR = reportes.length ? reportes.map(r=>`<div class="card"><p><b>${r.de}</b> reportó a <b>${r.contra}</b> ${r.estado==='revisado'?'<span class="badge ok">Revisado</span>':'<span class="badge pending">Pendiente</span>'}</p><p>${r.motivo}</p>${r.estado!=='revisado' ? `<button class="btn secondary btn-sm" data-revisar-reporte="${r.id}">Marcar como revisado</button>`:''}</div>`).join('') : '<p class="empty">Sin reportes.</p>';
+
+  const totalDesactivados = todosProfs.filter(u=>u.activo===false).length + todosClis.filter(u=>u.activo===false).length;
+  const filtrosUI = `
+    <div class="card">
+      <p class="meta" style="font-weight:700;">Filtrar por estado:</p>
+      <span class="pill ${adminFiltroVerif==='todos'?'on':''}" data-admin-filtro="todos">Todos (${todosProfs.length + todosClis.length})</span>
+      <span class="pill ${adminFiltroVerif==='sin-verificar'?'on':''}" data-admin-filtro="sin-verificar">⚠️ No verificados (${todosProfs.filter(u=>!u.verificado).length + todosClis.filter(u=>!u.verificado).length})</span>
+      <span class="pill ${adminFiltroVerif==='verificados'?'on':''}" data-admin-filtro="verificados">✓ Verificados (${todosProfs.filter(u=>u.verificado).length + todosClis.filter(u=>u.verificado).length})</span>
+      <span class="pill ${adminFiltroVerif==='desactivados'?'on':''}" data-admin-filtro="desactivados">🚫 Desactivados (${totalDesactivados})</span>
+    </div>`;
+
+  return `${renderAyuda('admin')}
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+    <button class="btn ${adminSubTab==='clientes'?'secondary':'ghost'}" data-admin-sub="clientes">👥 Clientes (${todosClis.length})</button>
+    <button class="btn ${adminSubTab==='profesionales'?'secondary':'ghost'}" data-admin-sub="profesionales">🔧 Profesionales (${todosProfs.length})</button>
+  </div>
+  ${filtrosUI}
+  ${adminSubTab === 'clientes' ? `
+    <div class="card"><h3>👥 Clientes ${adminFiltroVerif!=='todos' ? '— '+(adminFiltroVerif==='sin-verificar'?'No verificados':adminFiltroVerif==='verificados'?'Verificados':'Desactivados') : ''}</h3></div>
+    ${clisFiltrados.length ? clisFiltrados.map(c=>bU(c, false)).join('') : '<p class="empty">No hay clientes con ese filtro.</p>'}
+  ` : `
+    <div class="card"><h3>🔧 Profesionales ${adminFiltroVerif!=='todos' ? '— '+(adminFiltroVerif==='sin-verificar'?'No verificados':adminFiltroVerif==='verificados'?'Verificados':'Desactivados') : ''}</h3></div>
+    ${profsFiltrados.length ? profsFiltrados.map(p=>bU(p, true)).join('') : '<p class="empty">No hay profesionales con ese filtro.</p>'}
+  `}
+  <h3>Reportes de usuarios</h3>${bR}
+  `;
+}
+function itemsChecklist(tipo){ const b = ['La foto de perfil corresponde a una persona real y coincide con la cédula.','El número de cédula tiene un formato razonable.','El número de teléfono parece completo y correcto.']; if(tipo==='profesional'){ b.push('La categoría y descripción del oficio son coherentes.'); b.push('Si subió documento de respaldo, es legible.'); } return b; }
+function bloqueChecklist(u){ const items = itemsChecklist(u.tipo); return `<div class="checklist" data-checklist-de="${u.email}"><p class="meta" style="font-weight:700;margin-bottom:6px;">Antes de verificar, confirma:</p>${items.map(t=>`<label style="display:flex;gap:8px;align-items:flex-start;margin:5px 0;"><input type="checkbox" class="chk-verif" data-email="${u.email}" style="width:auto;margin-top:3px;"><span>${t}</span></label>`).join('')}<button class="btn gold btn-sm" data-verificar="${u.email}" disabled>Marcar como verificado</button></div>`; }
+
+function wireAdmin(){
+  document.querySelectorAll('[data-verificar]').forEach(b=>{ b.onclick = async ()=>{
+    const us = await getUsersFresh();
+    const u = us.find(x=>x.email===b.dataset.verificar);
+    if(u){
+      u.verificado = true; u.cedulaVerificada = true;
+      u.notificacionVerificacion = { estado: 'aprobado', fecha: Date.now(), visto: false };
+      await saveUsers(us);
+      await syncDirectorioPublico(u.email);
+      try{ await registrarMovimiento(u.email, `✅ Cuenta VERIFICADA y aprobada por el admin.`); }catch(e){}
+      toast((u.nombre||u.email)+' verificado.', 'success');
+      render();
+    }
+  }; });
+  document.querySelectorAll('.chk-verif').forEach(cb=>{ cb.onchange = ()=>{ const em = cb.dataset.email; const t = [...document.querySelectorAll('.chk-verif')].filter(x=>x.dataset.email===em); const b = [...document.querySelectorAll('[data-verificar]')].find(x=>x.dataset.verificar===em); if(b) b.disabled = !t.every(x=>x.checked); }; });
+  document.querySelectorAll('[data-dec]').forEach(b=>{ b.onclick = async ()=>{
+    const us = await getUsersFresh();
+    const u = us.find(x=>x.email===b.dataset.em);
+    if(!u) return;
+    if(b.dataset.val === 'rechazado'){
+      const motivo = prompt('✗ Motivo del rechazo (el usuario lo verá):');
+      if(motivo === null) return;
+      if(!motivo.trim()){ toast('Debes indicar un motivo.', 'error'); return; }
+      u['motivoRechazo_' + b.dataset.dec] = motivo.trim();
+      try{ await registrarMovimiento(u.email, `⚠️ Documento "${b.dataset.dec}" RECHAZADO.\nMotivo: ${motivo.trim()}`); }catch(e){}
+    } else {
+      try{ await registrarMovimiento(u.email, `✅ Documento "${b.dataset.dec}" APROBADO.`); }catch(e){}
+    }
+    u[b.dataset.dec] = b.dataset.val;
+    if(b.dataset.val==='rechazado') u['avisoRechazo_'+b.dataset.dec] = Date.now();
+    await saveUsers(us);
+    toast(`${b.dataset.dec} → ${b.dataset.val}`, b.dataset.val==='aprobado'?'success':'warn');
+    render();
+  }; });
+  document.querySelectorAll('[data-revisar-reporte]').forEach(b=>{ b.onclick = async ()=>{ const rs = await getReportes(); const r = rs.find(x=>x.id===b.dataset.revisarReporte); if(r){ r.estado = 'revisado'; await saveReportes(rs); toast('Reporte revisado.', 'success'); render(); } }; });
+  document.querySelectorAll('[data-desactivar]').forEach(b=>{ b.onclick = async ()=>{
+    const us = await getUsersFresh();
+    const u = us.find(x=>x.email===b.dataset.desactivar);
+    const motivo = prompt('Motivo de la desactivación (el usuario lo verá):');
+    if(motivo === null) return;
+    if(u){
+      u.activo = false; u.desactivadoPor = motivo.trim() || 'Admin'; u.fechaDesactivacion = Date.now();
+      await saveUsers(us);
+      await syncDirectorioPublico(u.email);
+      try{ await registrarMovimiento(u.email, `🔒 Cuenta DESACTIVADA por el admin.\nMotivo: ${u.desactivadoPor}`); }catch(e){}
+      toast((u.nombre||u.email)+' desactivado.', 'error');
+      render();
+    }
+  }; });
+  document.querySelectorAll('[data-activar]').forEach(b=>{ b.onclick = async ()=>{
+    const us = await getUsersFresh();
+    const u = us.find(x=>x.email===b.dataset.activar);
+    if(u){
+      u.activo = true; u.desactivadoPor = ''; u.fechaDesactivacion = null; u.intentosFallidos = 0; u.notificacionReactivacion = Date.now();
+      await saveUsers(us);
+      await syncDirectorioPublico(u.email);
+      try{ await registrarMovimiento(u.email, `✅ Cuenta REACTIVADA.`); }catch(e){}
+      toast((u.nombre||u.email)+' reactivado.', 'success');
+      render();
+    }
+  }; });
+  document.querySelectorAll('[data-chat-user]').forEach(b=>{ b.onclick = ()=>{ chatWith = b.dataset.chatUser; currentTab = 'mensajes'; render(); }; });
+  document.querySelectorAll('[data-admin-sub]').forEach(b=>{ b.onclick = ()=>{ adminSubTab = b.dataset.adminSub; adminFiltroVerif = 'todos'; render(); }; });
+  document.querySelectorAll('[data-admin-filtro]').forEach(b=>{ b.onclick = ()=>{ adminFiltroVerif = b.dataset.adminFiltro; render(); }; });
+  document.querySelectorAll('[data-editar-usuario]').forEach(b=>{ b.onclick = ()=>{ adminEditandoEmail = adminEditandoEmail === b.dataset.editarUsuario ? null : b.dataset.editarUsuario; render(); }; });
+  document.querySelectorAll('[data-cancelar-edit]').forEach(b=>{ b.onclick = ()=>{ adminEditandoEmail = null; render(); }; });
+  document.querySelectorAll('[data-guardar-edit]').forEach(b=>{
+    b.onclick = async ()=>{
+      const emailViejo = b.dataset.guardarEdit;
+      const us = await getUsersFresh();
+      const u = us.find(x=>x.email===emailViejo);
+      if(!u){ toast('Usuario no encontrado.', 'error'); return; }
+      const nNombre = document.getElementById('admNombre').value.trim();
+      const nTel = document.getElementById('admTel').value.trim();
+      const nCedula = document.getElementById('admCedula').value.trim();
+      const nEmail = normalizarEmail(document.getElementById('admEmail').value.trim());
+      if(!nNombre || !nTel || !nCedula || !nEmail){ toast('Completa todos los campos.', 'error'); return; }
+      const cambioEmail = nEmail !== emailViejo;
+      if(cambioEmail && us.find(x=>x.email===nEmail)){ toast('Ese correo ya está en uso.', 'error'); return; }
+      const cambioTel = nTel !== u.tel;
+      const cambioCedula = nCedula !== (u.cedula||'');
+      let cambios = [];
+      if(u.nombre !== nNombre){ cambios.push('nombre'); u.nombre = nNombre; }
+      if(cambioTel){ cambios.push('teléfono'); u.tel = nTel; u.telVerificado = false; }
+      if(cambioEmail){ cambios.push('correo'); u.email = nEmail; u.emailVerificado = false; }
+      const fFoto = document.getElementById('admFoto').files[0];
+      const fCed = document.getElementById('admCedulaImg').files[0];
+      const fDoc = document.getElementById('admDocImg').files[0];
+      if(fFoto){ u.foto = await subirImagen(fFoto, 'perfil/' + safeId(u.email), 500, 0.78); u.revFoto = 'aprobado'; cambios.push('foto de perfil'); }
+      const priv = {};
+      if(fCed){ priv.cedulaImagen = await subirImagen(fCed, 'cedulas/' + safeId(u.email), 900, 0.7); cambios.push('foto de cédula'); }
+      if(fDoc){ priv.docImagen = await subirImagen(fDoc, 'documentos/' + safeId(u.email), 900, 0.7); cambios.push('documento adicional'); }
+      if(cambioCedula || fCed){ priv.cedula = nCedula; u.cedula = nCedula; if(cambioCedula) cambios.push('cédula'); }
+      const usersFiltrados = us.filter(x=>x.email!==emailViejo);
+      usersFiltrados.push(u);
+      await saveUsers(usersFiltrados);
+      if(cambioEmail){ try{ await db.collection('usuarios').doc(safeId(emailViejo)).delete(); }catch(e){} }
+      if(Object.keys(priv).length || cambioCedula){
+        try{
+          if(FIREBASE_LISTO){
+            const ref = db.collection('privado').doc(safeId(cambioEmail ? nEmail : emailViejo));
+            const cur = await ref.get();
+            const data = cur.exists ? cur.data() : {email:nEmail};
+            await ref.set({...data, ...priv, email: nEmail, cedula: nCedula || data.cedula});
+          }
+        }catch(e){}
+      }
+      try{ await registrarMovimiento(nEmail, `✏️ El admin actualizó tus datos: ${cambios.join(', ') || 'sin cambios'}.`); }catch(e){}
+      await syncDirectorioPublico(nEmail);
+      toast('Datos actualizados.', 'success');
+      adminEditandoEmail = null;
+      render();
+    };
+  });
+  document.querySelectorAll('[data-eliminar-usuario]').forEach(b=>{
+    b.onclick = async ()=>{
+      const email = b.dataset.eliminarUsuario;
+      const confirmacion = confirm('¿Eliminar permanentemente a ' + email + ' de Firestore?\n\nTambién debes borrarlo en Firebase Console → Authentication.');
+      if(!confirmacion) return;
+      b.disabled = true; b.textContent = 'Eliminando...';
+      try{
+        await db.collection('usuarios').doc(safeId(email)).delete();
+        try{ await db.collection('privado').doc(safeId(email)).delete(); }catch(e){}
+        try{ await db.collection('directorio').doc(safeId(email)).delete(); }catch(e){}
+        toast('✅ Usuario eliminado.', 'success');
+        render();
+      }catch(e){
+        toast('Error al eliminar: ' + (e.message||e), 'error');
+        b.disabled = false; b.textContent = '🗑️ Eliminar';
+      }
+    };
+  });
+}
+
+/* ---------- FAB ARRASTRABLE ---------- */
+function wireFabArrastrable(){
+  const fab = document.getElementById('fabSoporte');
+  if(!fab) return;
+  const guardado = localStorage.getItem('fabPos');
+  if(guardado){
+    try{
+      const p = JSON.parse(guardado);
+      if(p && typeof p.x === 'number' && typeof p.y === 'number'){
+        fab.style.left = p.x + 'px'; fab.style.top = p.y + 'px';
+        fab.style.right = 'auto'; fab.style.bottom = 'auto';
+      }
+    }catch(e){}
+  }
+  let arrastrando = false, sx = 0, sy = 0, ox = 0, oy = 0, movido = false;
+  const getXY = (e) => e.touches ? {x: e.touches[0].clientX, y: e.touches[0].clientY} : {x: e.clientX, y: e.clientY};
+  const onDown = (e)=>{
+    const p = getXY(e);
+    const r = fab.getBoundingClientRect();
+    sx = p.x; sy = p.y; ox = r.left; oy = r.top;
+    arrastrando = true; movido = false;
+    fab.classList.add('arrastrando');
+  };
+  const onMove = (e)=>{
+    if(!arrastrando) return;
+    const p = getXY(e);
+    const dx = p.x - sx; const dy = p.y - sy;
+    if(Math.abs(dx) > 4 || Math.abs(dy) > 4) movido = true;
+    const nx = Math.max(8, Math.min(window.innerWidth - 70, ox + dx));
+    const ny = Math.max(8, Math.min(window.innerHeight - 70, oy + dy));
+    fab.style.left = nx + 'px'; fab.style.top = ny + 'px';
+    fab.style.right = 'auto'; fab.style.bottom = 'auto';
+    if(e.cancelable) e.preventDefault();
+  };
+  const onUp = ()=>{
+    if(!arrastrando) return;
+    arrastrando = false;
+    fab.classList.remove('arrastrando');
+    const r = fab.getBoundingClientRect();
+    try{ localStorage.setItem('fabPos', JSON.stringify({x: r.left, y: r.top})); }catch(e){}
+    if(!movido && session){ abrirSoporte(); }
+  };
+  fab.addEventListener('mousedown', onDown);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+  fab.addEventListener('touchstart', onDown, {passive: true});
+  window.addEventListener('touchmove', onMove, {passive: false});
+  window.addEventListener('touchend', onUp);
+}
+
+/* ---------- RENDER PRINCIPAL ---------- */
+async function render(){
+  if(currentTab !== 'mensajes'){
+    if(chatPollTimer){ clearInterval(chatPollTimer); chatPollTimer = null; }
+    detenerListenerChat();
+  }
+  if(mostrarOnboarding()){ renderTabs(); document.getElementById('app').innerHTML = renderOnboarding(); wireOnboarding(); document.getElementById('sessionInfo').innerHTML = ''; document.getElementById('dbFooterStatus').innerHTML = ''; return; }
+  renderTabs();
+  const app = document.getElementById('app');
+  app.innerHTML = '<div class="card"><div class="skeleton" style="width:70%"></div><div class="skeleton" style="width:90%"></div></div>';
+  if(!session && (currentTab==='perfil'||currentTab==='mensajes'||currentTab==='admin'||currentTab==='verificacion'||currentTab==='soporte'||currentTab==='favoritos'||currentTab==='trabajos'||currentTab==='clientes'||currentTab==='cuentaDesactivada'||currentTab==='calificar')) currentTab = 'login';
+
+  if(session && !esAdmin(session)){
+    try{
+      const users = await getUsersFresh();
+      const u = users.find(x=>x.email===session.email);
+      if(u) usuarioActual = u;
+    }catch(e){}
+  }
+
+  if(session && !esAdmin(session) && usuarioActual && usuarioActual.activo === false){
+    const permitidos = ['cuentaDesactivada','mensajes','soporte','terminos'];
+    if(!permitidos.includes(currentTab)) currentTab = 'cuentaDesactivada';
+  }
+  if(session && !esAdmin(session) && (!usuarioActual || usuarioActual.activo !== false)){
+    if(usuarioActual && !estaVerificado(usuarioActual) && currentTab !== 'soporte'){
+      if(currentTab !== 'mensajes' || (chatWith && !esEmailAdmin2(chatWith))){
+        currentTab = 'verificacion';
+      }
+    }
+  }
+  try{
+    if(currentTab==='registro'){ app.innerHTML = viewRegistro(); wireRegistro(); }
+    else if(currentTab==='terminos'){ app.innerHTML = viewTerminos(); }
+    else if(currentTab==='login'){ app.innerHTML = viewLogin(); wireLogin(); }
+    else if(currentTab==='cuentaDesactivada'){ usuarioActual = usuarioActual || (await getUsersFresh()).find(x=>x.email===session.email); app.innerHTML = viewCuentaDesactivada(); wireCuentaDesactivada(); }
+    else if(currentTab==='verificacion'){ const us = await getUsersFresh(); const u = us.find(x=>x.email===session.email); if(u){ app.innerHTML = viewVerificacion(u); wireVerificacion(u); } else { app.innerHTML = '<p class="empty">Usuario no encontrado.</p>'; } }
+    else if(currentTab==='buscar'){ app.innerHTML = await viewBuscar(); wireBuscar(); }
+    else if(currentTab==='clientes'){ app.innerHTML = await viewClientes(); wireClientes(); }
+    else if(currentTab==='favoritos'){ app.innerHTML = await viewFavoritos(); wireBotonesLista(); }
+    else if(currentTab==='trabajos'){ app.innerHTML = await viewMisTrabajos(); wireMisTrabajos(); }
+    else if(currentTab==='perfil'){ app.innerHTML = await viewPerfil(); wirePerfil(); }
+    else if(currentTab==='mensajes'){ app.innerHTML = await viewMensajes(); wireMensajes(); }
+    else if(currentTab==='soporte'){ abrirSoporte(); return; }
+    else if(currentTab==='calificar'){ app.innerHTML = await viewCalificar(); wireCalificar(); }
+    else if(currentTab==='admin'){ app.innerHTML = await viewAdmin(); wireAdmin(); }
+  }catch(err){ app.innerHTML = `<div class="card"><p style="color:var(--brick)">Error: ${err.message||err}</p></div>`; console.error(err); }
+  wireAyuda();
+  app.classList.remove('fadein');
+  void app.offsetWidth;
+  app.classList.add('fadein');
+}
+
+aplicarTema();
+document.getElementById('btnTema').onclick = alternarTema;
+const cb = document.getElementById('btnCampana'); if(cb) cb.onclick = ()=>{ if(session) { currentTab='mensajes'; render(); } };
+
+(async ()=>{
+  try{
+    const params = new URLSearchParams(window.location.search);
+    if(params.get('emailVerificado') === '1' || window.location.hash.includes('emailVerificado')){
+      setTimeout(async ()=>{ await sincronizarEmailVerificado(); }, 1500);
+    }
+  }catch(e){}
+  try{
+    const prev = localStorage.getItem('ultimaSesion');
+    if(prev){
+      const p = JSON.parse(prev);
+      if(p && p.email){
+        if(FIREBASE_LISTO && auth){
+          auth.onAuthStateChanged(async (user)=>{
+            if(user){
+              const users = await getUsersFresh();
+              const uFire = users.find(x=>x.email===normalizarEmail(user.email));
+              if(uFire && user.emailVerified && !uFire.emailVerificado){
+                uFire.emailVerificado = true;
+                await saveUsers(users);
+              }
+              session = {email: normalizarEmail(user.email), tipo: uFire ? uFire.tipo : p.tipo};
+              usuarioActual = uFire || null;
+              render();
+            } else { usuarioActual = null; render(); }
+          });
+          return;
+        } else {
+          session = p;
+          const allU = await getUsersFresh();
+          usuarioActual = allU.find(x=>x.email===p.email) || null;
+        }
+      }
+    }
+  }catch(e){}
+  render();
+})();
+
+const _origRender = render;
+render = async function(){
+  await _origRender.apply(this, arguments);
+  setTimeout(wireFabArrastrable, 50);
+};
+
+setInterval(()=>{
+  try{ if(session) localStorage.setItem('ultimaSesion', JSON.stringify(session)); else localStorage.removeItem('ultimaSesion'); }catch(e){}
+  if(session) actualizarCampana();
+}, 8000);
+</script>
+</body>
+</html>

@@ -2142,15 +2142,16 @@ async function render(){
     else if(currentTab==='calificar'){ app.innerHTML = await viewCalificar(); wireCalificar(); }
     else if(currentTab==='admin'){ app.innerHTML = await viewAdmin(); wireAdmin(); }
   }catch(err){ app.innerHTML = `<div class="card"><p style="color:var(--brick)">Error: ${err.message||err}</p></div>`; console.error(err); }
-  wireAyuda();
+    wireAyuda();
   app.classList.remove('fadein');
   void app.offsetWidth;
   app.classList.add('fadein');
+  setTimeout(wireFabArrastrable, 50);
 }
-
 aplicarTema();
 document.getElementById('btnTema').onclick = alternarTema;
 const cb = document.getElementById('btnCampana'); if(cb) cb.onclick = ()=>{ if(session) { currentTab='mensajes'; render(); } };
+const fb = document.getElementById('fabSoporte'); if(fb) fb.onclick = ()=>{ if(session) abrirSoporte(); };
 
 (async ()=>{
   try{
